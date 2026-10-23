@@ -1,1 +1,0 @@
-# AI-Powered-Soil-Analytics-System-For-Nutrient-Assessment-And-Intelligent-Crop-Advisory-OCT-2026
