@@ -1,0 +1,356 @@
+{
+ "_note": "PROVISIONAL crop needs, written from commonly quoted agronomy ranges for Indian conditions. Check them with your mentor or a local agriculture officer, then edit this file only; no code changes are needed.",
+ "demand_level": {
+  "low": 0.35,
+  "medium": 0.6,
+  "high": 0.85
+ },
+ "weights": {
+  "ph": 0.4,
+  "nutrients": 0.35,
+  "soil_type": 0.25
+ },
+ "soil_fit": {
+  "good": 1.0,
+  "fair": 0.7,
+  "other": 0.4
+ },
+ "ph_fade_units": 1.5,
+ "labels": {
+  "very_suitable": 75,
+  "suitable": 55,
+  "possible": 40
+ },
+ "crops": {
+  "rice": {
+   "ph": [
+    5.5,
+    7.0
+   ],
+   "n": "high",
+   "p": "medium",
+   "k": "medium",
+   "good": [
+    "Alluvial",
+    "Black"
+   ],
+   "fair": [
+    "Yellow",
+    "Red"
+   ]
+  },
+  "wheat": {
+   "ph": [
+    6.0,
+    7.5
+   ],
+   "n": "high",
+   "p": "medium",
+   "k": "medium",
+   "good": [
+    "Alluvial",
+    "Black"
+   ],
+   "fair": [
+    "Red"
+   ]
+  },
+  "maize": {
+   "ph": [
+    5.8,
+    7.5
+   ],
+   "n": "high",
+   "p": "medium",
+   "k": "medium",
+   "good": [
+    "Alluvial",
+    "Red"
+   ],
+   "fair": [
+    "Black",
+    "Yellow"
+   ]
+  },
+  "ragi": {
+   "ph": [
+    5.0,
+    7.5
+   ],
+   "n": "medium",
+   "p": "low",
+   "k": "low",
+   "good": [
+    "Red",
+    "Laterite"
+   ],
+   "fair": [
+    "Alluvial",
+    "Yellow"
+   ]
+  },
+  "jowar": {
+   "ph": [
+    6.0,
+    8.5
+   ],
+   "n": "medium",
+   "p": "low",
+   "k": "low",
+   "good": [
+    "Black",
+    "Red"
+   ],
+   "fair": [
+    "Alluvial",
+    "Arid"
+   ]
+  },
+  "bajra": {
+   "ph": [
+    6.0,
+    8.0
+   ],
+   "n": "low",
+   "p": "low",
+   "k": "low",
+   "good": [
+    "Arid",
+    "Red"
+   ],
+   "fair": [
+    "Alluvial",
+    "Laterite"
+   ]
+  },
+  "groundnut": {
+   "ph": [
+    5.5,
+    7.0
+   ],
+   "n": "low",
+   "p": "medium",
+   "k": "medium",
+   "good": [
+    "Red",
+    "Laterite"
+   ],
+   "fair": [
+    "Arid",
+    "Alluvial",
+    "Yellow"
+   ]
+  },
+  "cotton": {
+   "ph": [
+    6.0,
+    8.0
+   ],
+   "n": "high",
+   "p": "medium",
+   "k": "medium",
+   "good": [
+    "Black"
+   ],
+   "fair": [
+    "Alluvial",
+    "Red"
+   ]
+  },
+  "sugarcane": {
+   "ph": [
+    6.0,
+    8.0
+   ],
+   "n": "high",
+   "p": "medium",
+   "k": "high",
+   "good": [
+    "Alluvial",
+    "Black"
+   ],
+   "fair": [
+    "Red"
+   ]
+  },
+  "pigeonpea": {
+   "ph": [
+    6.0,
+    7.5
+   ],
+   "n": "low",
+   "p": "medium",
+   "k": "low",
+   "good": [
+    "Red",
+    "Black"
+   ],
+   "fair": [
+    "Alluvial",
+    "Yellow"
+   ]
+  },
+  "chickpea": {
+   "ph": [
+    6.0,
+    8.0
+   ],
+   "n": "low",
+   "p": "medium",
+   "k": "low",
+   "good": [
+    "Black",
+    "Alluvial"
+   ],
+   "fair": [
+    "Red"
+   ]
+  },
+  "greengram": {
+   "ph": [
+    6.0,
+    7.5
+   ],
+   "n": "low",
+   "p": "medium",
+   "k": "low",
+   "good": [
+    "Alluvial",
+    "Red"
+   ],
+   "fair": [
+    "Black",
+    "Yellow"
+   ]
+  },
+  "soybean": {
+   "ph": [
+    6.0,
+    7.0
+   ],
+   "n": "low",
+   "p": "medium",
+   "k": "medium",
+   "good": [
+    "Black"
+   ],
+   "fair": [
+    "Red",
+    "Alluvial"
+   ]
+  },
+  "sunflower": {
+   "ph": [
+    6.0,
+    7.5
+   ],
+   "n": "medium",
+   "p": "medium",
+   "k": "medium",
+   "good": [
+    "Black",
+    "Red"
+   ],
+   "fair": [
+    "Alluvial"
+   ]
+  },
+  "tomato": {
+   "ph": [
+    6.0,
+    7.0
+   ],
+   "n": "high",
+   "p": "high",
+   "k": "high",
+   "good": [
+    "Red",
+    "Alluvial"
+   ],
+   "fair": [
+    "Laterite",
+    "Yellow"
+   ]
+  },
+  "onion": {
+   "ph": [
+    6.0,
+    7.0
+   ],
+   "n": "medium",
+   "p": "medium",
+   "k": "medium",
+   "good": [
+    "Alluvial",
+    "Red"
+   ],
+   "fair": [
+    "Black"
+   ]
+  },
+  "potato": {
+   "ph": [
+    5.0,
+    6.5
+   ],
+   "n": "high",
+   "p": "high",
+   "k": "high",
+   "good": [
+    "Mountain",
+    "Alluvial"
+   ],
+   "fair": [
+    "Red"
+   ]
+  },
+  "banana": {
+   "ph": [
+    6.0,
+    7.5
+   ],
+   "n": "high",
+   "p": "medium",
+   "k": "high",
+   "good": [
+    "Alluvial"
+   ],
+   "fair": [
+    "Red",
+    "Black"
+   ]
+  },
+  "coffee": {
+   "ph": [
+    5.0,
+    6.5
+   ],
+   "n": "medium",
+   "p": "low",
+   "k": "medium",
+   "good": [
+    "Laterite",
+    "Mountain"
+   ],
+   "fair": [
+    "Red"
+   ]
+  },
+  "tea": {
+   "ph": [
+    4.5,
+    5.5
+   ],
+   "n": "high",
+   "p": "low",
+   "k": "medium",
+   "good": [
+    "Mountain",
+    "Laterite"
+   ],
+   "fair": [
+    "Yellow"
+   ]
+  }
+ }
+}

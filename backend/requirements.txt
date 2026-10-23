@@ -1,0 +1,30 @@
+# Versions below are the ones the tests were run with.
+fastapi==0.143.2
+uvicorn[standard]==0.54.0
+python-multipart==0.0.32
+pydantic==2.14.1
+pydantic-settings==2.16.0
+SQLAlchemy==2.1.4
+alembic==1.20.0
+psycopg[binary]==3.3.6
+pillow==12.3.0
+opencv-python-headless==5.0.0.93
+numpy>=1.26,<3
+
+# Milestone 2: models (CPU build of torch is enough; on Linux add:
+#   --extra-index-url https://download.pytorch.org/whl/cpu   to avoid the 2 GB GPU download)
+torch>=2.2
+torchvision>=0.17
+xgboost>=2.0
+scikit-learn>=1.4
+joblib>=1.3
+pandas>=2.0
+matplotlib>=3.8
+
+# login
+argon2-cffi==25.1.0
+PyJWT==2.15.1
+
+# only for running the tests
+pytest==9.1.1
+httpx==0.28.1

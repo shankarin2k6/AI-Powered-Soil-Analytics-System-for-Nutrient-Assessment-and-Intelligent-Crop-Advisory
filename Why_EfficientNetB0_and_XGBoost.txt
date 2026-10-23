@@ -1,0 +1,262 @@
+WHY WE CHOSE EFFICIENTNET-B0 AND XGBOOST
+AI-Powered Soil Analytics System - Team C
+(Simple explanation for the presentation)
+
+=====================================================================
+0. THE ONE-MINUTE VERSION
+=====================================================================
+
+Our app has two different kinds of input, so we use two different kinds of model:
+
+  1. A soil PHOTO  ->  image model  ->  EfficientNet-B0
+  2. Lab NUMBERS (N, P, K, pH, ...)  ->  table model  ->  XGBoost
+
+Rule we followed: use the model type that is known to work best for that kind
+of data, and keep it small enough to run on an ordinary server without a GPU.
+
+  - EfficientNet-B0 gives very good picture accuracy with only about 5 million
+    parameters, so it is small, fast on a CPU, and does not overfit easily on
+    our small soil dataset.
+  - XGBoost is the standard winner for table data with few columns. It is
+    accurate, trains in seconds, and can explain every answer (SHAP).
+
+Both are also easy to explain to a farmer or an examiner, which was important
+for a project about advice.
+
+
+=====================================================================
+1. WHY EFFICIENTNET-B0 FOR THE SOIL PHOTO
+=====================================================================
+
+1.1 What the job is
+-------------------
+Look at a photo and say which soil type it is (Alluvial, Arid, Black,
+Laterite, Mountain, Red, Yellow) or "Not soil". This is image
+classification. Convolutional neural networks (CNNs) are the normal tool.
+
+1.2 What EfficientNet is, in simple words
+-----------------------------------------
+Older networks became better just by becoming bigger (more layers, more
+parameters). EfficientNet found a balanced way to grow a network: make the
+depth (layers), width (channels) and picture size bigger together, in the
+right proportion. EfficientNet-B0 is the smallest, base version.
+Result: good accuracy for very little size and computing cost.
+
+1.3 Why it suits our project
+----------------------------
+(a) Small and fast. About 5.3 million parameters and about 0.4 GFLOPs per
+    photo. It runs on a normal CPU in well under a second. We do not need to
+    rent a GPU server to run the app.
+
+(b) Works well with little data. Our soil dataset is small (about 1,000
+    original photos plus augmented ones). Huge networks memorise small
+    datasets and then fail on new photos. A small network that starts from
+    ImageNet pre-training (transfer learning) learns the useful part (the
+    colour and texture of soil) and overfits less.
+
+(c) Pre-trained weights are available. We started from a network that already
+    knows edges, textures and colours from millions of ImageNet photos, and
+    only taught it soil. This needs far less data and training time.
+
+(d) Soil is about colour and texture, not complex shapes. We do not need an
+    enormous model to tell red soil from black soil.
+
+(e) Works with Grad-CAM. We can draw a heat-map on the photo showing where
+    the model looked. This lets us check that it looked at soil and not at a
+    shoe or a plant. It helps us trust the model and explain it.
+
+(f) Small file, easy deployment. The model file is only a few tens of MB, so
+    it loads quickly and fits on a phone-friendly backend.
+
+1.4 Comparison with other image models
+--------------------------------------
+(Numbers are the commonly published ImageNet figures for the standard
+versions, rounded. They are for comparison, not our own results.)
+
+Model             Parameters   Compute (GFLOPs)  ImageNet top-1   Our opinion
+----------------  -----------  ----------------  ---------------  ---------------------------
+EfficientNet-B0   ~5.3 M       ~0.4              ~77%             Best balance. CHOSEN.
+MobileNetV3-L     ~5.4 M       ~0.2              ~75%             Slightly lighter, a little
+                                                                  less accurate. Good backup
+                                                                  if we ever go on-device.
+ResNet-50         ~25.6 M      ~4.1              ~76%             5x bigger, 10x more compute,
+                                                                  no better accuracy. More
+                                                                  risk of overfitting.
+DenseNet-121      ~8 M         ~2.9              ~74%             Slower and more memory
+                                                                  hungry for no gain.
+VGG-16            ~138 M       ~15.5             ~72%             Very large and old. Not
+                                                                  sensible for a web service.
+Vision Transformer ~86 M       ~17.6             ~81%             Needs very large datasets
+(ViT-B/16)                                                        to work well; too heavy and
+                                                                  data-hungry for ~1,000
+                                                                  photos.
+Training a CNN    -            -                 -                Needs far more data and time.
+from scratch                                                      Pre-training is better here.
+
+Key point to say: EfficientNet-B0 is as accurate as ResNet-50 on ImageNet
+with about one fifth of the parameters and one tenth of the computing cost.
+
+1.5 What we did to make it reliable (not just "pick a model")
+------------------------------------------------------------
+- Added a "Not_Soil" class and trained with hard negatives (photos of rooms,
+  sky, people, bark, cloth, gravel) so the app does not give a soil name to a
+  random photo. We compared model versions and chose the one that rejected
+  non-soil best (model D).
+- Used confidence levels: 60% or more = show the answer; 40% to 60% = ask the
+  farmer to confirm; below 40% = ask for a new photo.
+- Used Grad-CAM heat-maps to show what the model looked at.
+- Checked results with a confusion matrix, not only accuracy.
+
+[Fill in from your evaluation report before presenting]
+  Test accuracy: ______   Macro F1: ______   Not_Soil rejection: ______
+
+
+=====================================================================
+2. WHY XGBOOST FOR THE LAB NUMBERS (FERTILISER ADVICE)
+=====================================================================
+
+2.1 What the job is
+-------------------
+Given a few numbers (N, P, K, pH, moisture, organic carbon, salinity) and a
+few choices (soil type, crop, growth stage, season), suggest the fertiliser.
+This is a classification problem on a small TABLE of data.
+
+2.2 What XGBoost is, in simple words
+------------------------------------
+XGBoost builds many small decision trees one after another. Each new tree
+tries to fix the mistakes of the trees before it. Adding all the small trees
+together gives a strong, accurate model. It is called "gradient boosting".
+
+2.3 Why it suits our project
+----------------------------
+(a) Best type of model for table data. For rows and columns of numbers, tree
+    boosting methods like XGBoost usually beat deep neural networks, which
+    are better for pictures, sound and text.
+
+(b) Works with small data. Our fertiliser data has a few thousand rows at
+    most. Neural networks need a lot more data to be stable. XGBoost is
+    comfortable with this size.
+
+(c) No heavy preparation. It does not need the numbers scaled or normalised,
+    handles mixed columns well, and is not upset by columns on very different
+    scales (pH 0-14 next to nitrogen 0-140).
+
+(d) It can explain itself. With SHAP (TreeSHAP) we can show, for every
+    suggestion, which values pushed the model towards the fertiliser or away
+    from it. For example: "low nitrogen pushed the answer towards urea".
+    A farmer or an agriculture officer can check whether the reasoning makes
+    sense. For an advice system this matters more than a tiny accuracy gain.
+
+(e) Fast and light. Trains in seconds, predicts in milliseconds, runs on a
+    CPU, and the saved model is small.
+
+(f) Built-in protection against overfitting. Settings such as tree depth,
+    learning rate and number of trees, and cross-validation, let us control
+    it.
+
+(g) Easy to retrain. When better data arrives, we just train again and replace
+    the model file. No change in the app.
+
+2.4 Comparison with other models for table data
+-----------------------------------------------
+Model                  Good points                     Why we did not choose it
+---------------------  ------------------------------  --------------------------------------
+XGBoost                Accurate, fast, handles mixed   CHOSEN.
+                       data, SHAP explanations.
+Random Forest          Simple, strong, hard to         Usually a little less accurate than
+                       overfit.                        boosting; larger model file.
+Decision Tree          Very easy to read.              Single trees are unstable and less
+                                                       accurate.
+Logistic Regression    Simple, fast, easy to explain.  Too simple: soil and crop effects are
+                                                       not straight-line effects.
+SVM                    Good on small data.             Needs scaling, slow to tune, harder to
+                                                       explain.
+KNN                    Very simple.                    Slow at prediction time, weak when
+                                                       columns have different scales.
+Neural network (MLP)   Flexible.                       Needs more data, more tuning, and is
+                                                       a "black box". Often worse than trees
+                                                       on small tables.
+LightGBM / CatBoost    Very similar to XGBoost.        Equally good choices. XGBoost is the
+                                                       most widely used and has the best
+                                                       documentation and SHAP support, so
+                                                       it was the safest choice.
+
+[Fill in from your own experiments before presenting]
+  Model compared: ______   Accuracy: ______   Weighted F1: ______
+  XGBoost cross-validation score: ______
+
+2.5 What we did to make it honest
+---------------------------------
+- Showed a warning when an input is outside the range the model learned from.
+- Showed "the model is not very sure" when confidence is low.
+- Marked SSP as a hint only, because SSP was the weakest class in testing.
+- Combined it with simple, readable lab rules (low / fine / high) so the
+  health score and diagnosis do not depend on the model alone.
+
+
+=====================================================================
+3. WHY TWO MODELS AND NOT ONE BIG MODEL
+=====================================================================
+
+- There is no public dataset with a photo AND lab numbers for the same soil.
+  One model cannot learn from two kinds of data that were never collected
+  together.
+- So each model does the job it is best at, and a small set of readable rules
+  combines the answers: the soil type from the photo becomes an input to the
+  fertiliser model, and the lab pH is used to check the photo's soil type.
+- This is easier to test, easier to explain, and easier to improve one part at
+  a time.
+
+
+=====================================================================
+4. LIKELY QUESTIONS AND SHORT ANSWERS
+=====================================================================
+
+Q: Why not ResNet-50, it is more famous?
+A: It is five times bigger and ten times heavier to run, but not more accurate
+   than EfficientNet-B0 on the standard benchmark. With about 1,000 photos the
+   bigger model is more likely to overfit.
+
+Q: Why not a Vision Transformer?
+A: Transformers need very large datasets. With a small soil dataset a
+   pre-trained CNN is the safer and cheaper choice.
+
+Q: Why not deep learning for the lab numbers too?
+A: For small tables, tree models like XGBoost usually match or beat neural
+   networks, train faster, and can explain their answers.
+
+Q: How do you know the image model is not just guessing?
+A: We tested with a confusion matrix, added a Not_Soil class, trained with
+   hard negatives, and use Grad-CAM to see where it looked. Low confidence
+   asks the farmer to confirm or retake the photo.
+
+Q: Can farmers trust the fertiliser advice?
+A: It is a guide, not a lab report. The app shows the reasons (SHAP), warns
+   when inputs are unusual, and tells the farmer to check with an agriculture
+   officer before large purchases.
+
+Q: What are the weak points?
+A: The fertiliser data is probably synthetic, SSP is the least reliable class,
+   most test photos came from the internet and not phones, there is no gravel
+   class yet, and the confidence values are not calibrated. Real phone photos
+   and field data are the next improvement.
+
+Q: Can you change the models later?
+A: Yes. The app loads the model files from one folder. A better model can be
+   dropped in without changing the app.
+
+
+=====================================================================
+5. SUMMARY TABLE FOR A SLIDE
+=====================================================================
+
+                    EfficientNet-B0               XGBoost
+-----------------   ---------------------------   ----------------------------
+Input               Soil photo                    Lab values + crop details
+Output              Soil type or "Not soil"       Fertiliser suggestion
+Why this model      Accurate yet small, good      Best for small tables, fast,
+                    with little data              explainable
+Explained with      Grad-CAM heat-map             SHAP reasons
+Runs on             Ordinary CPU                  Ordinary CPU
+Main alternatives   ResNet-50, MobileNetV3, ViT   Random Forest, SVM, MLP
+Main weakness       Internet photos, no gravel    Synthetic data, SSP weak

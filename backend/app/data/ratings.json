@@ -1,0 +1,137 @@
+{
+  "_note": "PROVISIONAL cut-offs adapted from the commonly quoted ICAR soil-test ratings. Confirm them with your mentor / the lab that produced the data, then edit this file only; no code changes are needed.",
+  "nutrients": {
+    "nitrogen": {
+      "unit": "mg/kg",
+      "low": 125,
+      "high": 250
+    },
+    "phosphorus": {
+      "unit": "mg/kg",
+      "low": 10,
+      "high": 25
+    },
+    "potassium": {
+      "unit": "mg/kg",
+      "low": 50,
+      "high": 125
+    },
+    "organic_matter": {
+      "unit": "%",
+      "low": 0.86,
+      "high": 1.29
+    }
+  },
+  "ph": {
+    "optimal": [
+      6.0,
+      7.5
+    ],
+    "acidic_below": 6.0,
+    "strongly_acidic_below": 5.5,
+    "alkaline_above": 7.5,
+    "strongly_alkaline_above": 8.5,
+    "zero_score_at": [
+      4.5,
+      9.5
+    ]
+  },
+  "weights": {
+    "nitrogen": 0.2,
+    "phosphorus": 0.2,
+    "potassium": 0.2,
+    "ph": 0.25,
+    "organic_matter": 0.15
+  },
+  "health_grades": {
+    "good": 75,
+    "moderate": 50
+  },
+  "degradation": {
+    "weights": {
+      "ph": 0.3,
+      "organic_matter": 0.3,
+      "nutrients": 0.25,
+      "soil_type": 0.15
+    },
+    "levels": {
+      "low": 33,
+      "moderate": 66
+    },
+    "soil_type_susceptibility": {
+      "Arid": 0.7,
+      "Laterite": 0.7,
+      "Mountain": 0.6,
+      "Red": 0.45,
+      "Yellow": 0.45,
+      "Black": 0.35,
+      "Alluvial": 0.25
+    }
+  },
+  "soil_ph_typical": {
+    "Alluvial": [
+      6.5,
+      8.5
+    ],
+    "Arid": [
+      7.5,
+      9.0
+    ],
+    "Black": [
+      7.0,
+      8.5
+    ],
+    "Laterite": [
+      4.5,
+      6.5
+    ],
+    "Mountain": [
+      4.5,
+      6.5
+    ],
+    "Red": [
+      5.5,
+      7.0
+    ],
+    "Yellow": [
+      5.0,
+      6.5
+    ]
+  },
+  "fertilizer_supplies": {
+    "Urea": [
+      "nitrogen"
+    ],
+    "DAP": [
+      "nitrogen",
+      "phosphorus"
+    ],
+    "MOP": [
+      "potassium"
+    ],
+    "SSP": [
+      "phosphorus"
+    ],
+    "NPK": [
+      "nitrogen",
+      "phosphorus",
+      "potassium"
+    ],
+    "Zinc Sulphate": [
+      "zinc"
+    ],
+    "Compost": [
+      "organic_matter"
+    ]
+  },
+  "soil_to_fertilizer_type": {
+    "_note": "Maps the CNN's soil classes to the fertilizer dataset's Soil_Type. Unreviewed: confirm with your mentor. Gravel soil has no CNN class yet.",
+    "Alluvial": "Loamy",
+    "Arid": "Sandy",
+    "Black": "Clay",
+    "Laterite": "Sandy",
+    "Mountain": "Silt",
+    "Red": "Loamy",
+    "Yellow": "Loamy"
+  }
+}

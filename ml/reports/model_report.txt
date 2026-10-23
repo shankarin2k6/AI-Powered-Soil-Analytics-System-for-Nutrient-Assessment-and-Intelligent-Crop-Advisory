@@ -1,0 +1,124 @@
+Soil Analytics: Model Evaluation Report
+Oct 14, 2026 · @shankari
+Summary
+The system ships three models: an 8-class soil image CNN (7 soils + Not_Soil), a 22-class crop recommender and a 7-class fertilizer recommender. The crop model reaches 0.99 hold-out accuracy; the fertilizer model plateaus at about 0.88, and its SSP class is unreliable.
+---------------------------------------------------------------------------------------------
+1. FINAL MODELS
+
+Model                      Final choice                                     Headline result
+-------------------------  -----------------------------------------------  ----------------------------------------------------------
+Soil image                 EfficientNet-B0, 8 classes, model D              0.93 accuracy, macro-F1 0.86, Not_Soil F1 0.98 (299 images)
+Crop recommendation        XGBoost, 22 crops                                0.99 hold-out accuracy (440 samples)
+Fertilizer recommendation  XGBoost, 7 fertilizers, no Rain/Temp/Humidity    0.87 accuracy, macro-F1 0.75 (2,000 samples); SSP F1 0.15
+---------------------------------------------------------------------------------------------
+
+The image test sets are small (8 to 42 images per soil class), so per-class differences of a few points are within noise. All probabilities are uncalibrated; the API therefore returns confidence tiers instead of raw scores.
+
+Data and evaluation protocol
+Image validation and test sets contain real photographs only, with duplicates removed, so GAN-generated images cannot leak into evaluation.
+• Soil images: Kaggle "Comprehensive Soil Classification Datasets", 1,188 original images. After removing 49 duplicates, 1,139 remain, split 797 train / 171 validation / 171 test.
+• GAN images: about 5,000 synthetic images in 4 classes, all 256x256. Used only in training for variant B, never in validation or test.
+• Not_Soil negatives: 600 COCO val2017 photos (about 420 / 90 / 90 across train / validation / test). Model D adds 150 bark and 100 wood images from two Kaggle datasets (128 Not_Soil test images in total).
+• Crop data: 2,200 rows, 22 crops, 7 inputs (N, P, K, temperature, humidity, pH, rainfall). Empty Unnamed columns were dropped.
+• Fertilizer data: 10,000 rows, 7 fertilizers, 2,000 held out. A 99-row second file was inspected but is too small to train on.
+• Training setup: EfficientNet-B0 with ImageNet weights, class-weighted cross-entropy with label smoothing 0.1, AdamW at 3e-4, cosine schedule, 12 epochs. The checkpoint with the best validation macro-F1 is kept.
+
+Tabular models
+The crop model is near-perfect at 0.99 hold-out accuracy. The fertilizer model tops out at about 0.88 whatever the features, which points to noise in the labels rather than a modelling gap.
+Crop recommendation. Hold-out accuracy 0.99, macro-F1 0.99 on 440 samples (20 per crop). Lowest per-crop F1: lentil 0.92 (recall 0.85), mungbean 0.95. This dataset is clean and its classes are well separated, so the result should not be read as field accuracy.
+Fertilizer recommendation. The majority-class baseline is 0.310. XGBoost reaches 0.884 +/- 0.006 in 5-fold cross-validation, which suggests roughly 12% of labels are not predictable from the inputs. Feature ablation showed the weather and rainfall inputs add nothing:
+-----------------------------------------------------------------------------------------
+
+2. FERTILIZER FEATURE ABLATION
+
+Feature set                                     Accuracy  Macro-F1
+----------------------------------------------  --------  --------
+All 14 features                                 0.884     0.743
+Without Rainfall                                0.884     0.743
+Without Rainfall, Temperature, Humidity         0.883     0.747
+Only N, P, K, pH plus soil, crop, stage, season 0.884     0.750
+
+------------------------------------------------------------------------------------------
+Rainfall, Temperature and Humidity were therefore dropped. This also avoids a units mismatch: rainfall is 20 to 299 in the crop data but 200 to 2,999 in the fertilizer data. The shipped model uses balanced sample weights and scores 0.87 accuracy, macro-F1 0.75 on 2,000 held-out rows.
+
+3. FERTILIZER PER-CLASS RESULTS (shipped model)
+
+Fertilizer     Precision  Recall  F1    Support
+-------------  ---------  ------  ----  -------
+Urea           0.98       0.93    0.96  620
+DAP            0.98       0.92    0.95  584
+MOP            0.90       0.85    0.88  282
+Compost        0.87       0.81    0.84  199
+Zinc Sulphate  0.71       0.80    0.75  150
+NPK            0.66       0.77    0.71  128
+SSP            0.10       0.24    0.15  37
+
+-------------------------------------------------------------------------------------------------
+Image model: four variants compared
+Model D is shipped because it rejects look-alike non-soil photos (bark, brown cloth) that model C let through, at the cost of a few points on some soil classes. Adding GAN images (B) made real-photo accuracy worse than real-only training (A).
+
+4. IMAGE MODEL VARIANTS
+
+Variant  Training data                          Test images  Accuracy  Macro-F1  Alluvial F1
+-------  -------------------------------------  -----------  --------  --------  -----------
+A        Real soil only                         171          0.89      0.83      0.42
+B        Real soil + GAN                        171          0.88      0.81      0.38
+C        Real soil + COCO negatives (Not_Soil)  261          0.94      0.90      0.60
+D        C + bark and wood negatives            299          0.93      0.86      0.50
+
+---------------------------------------------------------------------------------------------------------
+The test sets differ between rows (C and D include Not_Soil images), so accuracy is not strictly comparable across A/B and C/D.
+• A vs B: GAN data lowered Red recall (0.94 to 0.75) and Yellow recall (0.90 to 0.60). A likely cause is that the synthetic images differ from real photos, so the model picks up a shortcut instead of soil texture; this was not tested directly.
+• C: COCO negatives are easy. On the validation and test sets, 0% of non-soil photos reached the soil answer at confidence 0.4 or higher, and 1.2% of real soil was wrongly rejected on test. On 21 harder internet photos (bark, cloth and similar), C gave a soil answer for 11 (9 "confirm", 2 "confident").
+• D: Not_Soil F1 stays 0.98. Soil classes lose a little: Laterite F1 0.93 to 0.87, Arid 0.93 to 0.90, Yellow precision 0.82 to 0.64. Alluvial (n=8) and Yellow (n=10) are too small to read much into.
+• D spot checks through the API: bark and brown cloth return not_soil; red, yellow and laterite soil photos return confident with the right class, and a deep-yellow soil returns confirm with Yellow on top. The re-run of the 21-photo probe on D is still pending, so D's leak rate is not yet measured.
+
+Confidence tiers and API behaviour
+The API never returns a bare class. It returns one of four tiers, so the app can ask the user to confirm or retake the photo instead of showing an overconfident guess.
+----------------------------------------------------------------------------------------------
+
+5. CONFIDENCE TIERS
+
+Tier       Rule                                  App behaviour
+---------  ------------------------------------  ------------------------------------------
+confident  Top soil class at 0.60 or higher      Use the class and show the Grad-CAM heatmap
+confirm    Top soil class between 0.40 and 0.60  Show the top two soil candidates to pick
+retake     Top soil class below 0.40             Ask for a clearer photo
+not_soil   Not_Soil is the top class             Reject the photo; no heatmap
+
+-----------------------------------------------------------------------------------------------
+
+The 0.60 and 0.40 cut-offs come from the threshold analysis on model C (real soil, test set): at 0.4, 95.3% of photos get an answer at 94.5% accuracy; at 0.6, 80.1% get an answer at 97.8% accuracy. They have not yet been re-tuned for model D.
+• Endpoints: /analyze-image (tier, top-3 classes, Grad-CAM image), /recommend (top-3 crops, top-3 fertilizers, inputs used, warnings) and /health (loaded classes).
+• Fusion: the image result is mapped to a coarse soil type (Alluvial, Red, Yellow to Loamy; Black to Clay; Arid, Laterite to Sandy; Mountain to Silt) and fed to the fertilizer model. This mapping is approximate and needs agronomist review; Soil Type has little influence on the fertilizer model.
+• Safeguards: the API warns when inputs fall outside the training range, adds a note when SSP appears in the top three, and lists any assumed default values.
+• Testing: 31 automated tests passed against stand-in models, covering error paths, all four tiers and reduced fertilizer feature sets.
+
+Explainability
+Both model families give a visual explanation that can be checked against agronomic common sense.
+• SHAP (tabular): the global importances match crop-nutrition physics. Phosphorus drives DAP, nitrogen drives Urea, potassium drives MOP, and pH separates Compost, NPK and Zinc Sulphate. In the fertilizer data Nitrogen_Level (0.24), Phosphorus_Level (0.17) and Potassium_Level (0.09) are the top importances, followed by Soil_pH (0.07).
+• Grad-CAM (image): computed on the last feature map of the CNN and returned with every confident and confirm answer. It is skipped for not_soil. A heatmap that sits on the soil surface rather than the background is a quick sanity check on a prediction.
+• Not yet done: per-prediction SHAP is not in the API; only global SHAP plots exist.
+
+Known limitations
+The numbers above describe clean benchmark data, not field performance. Treat the following as open risks.
+• Domain shift: the soil dataset is internet and curated imagery. Phone photos under field lighting may score lower; no field test on real red-soil phone photos has been run.
+• Small test sets: 8 to 42 images per soil class. Alluvial is the weakest class (F1 0.50 to 0.60, n=8).
+• Uncalibrated probabilities: scores are not true likelihoods, which is why the API uses tiers.
+• Fertilizer data is likely synthetic: accuracy plateaus at 0.88 regardless of features, implying about 12% label noise. Treat its recommendations as a baseline, not agronomic advice.
+• SSP is unreliable: F1 0.13 to 0.15 across all variants. The API flags it with a low-reliability note.
+• Hard negatives: C leaked 11 of 21 internet look-alike photos as soil; D's leak rate is not yet measured. The COCO negatives used in evaluation are easy.
+• Possible overlap: some internet "field test" photos may also appear in the training data, so they are weak evidence.
+• Missing class: gravel soil has no class in the 7-class label set; a gravel photo gets mapped to its nearest class or rejected.
+• Soil-type mapping: the image class to Loamy/Clay/Sandy/Silt mapping is approximate and unreviewed.
+• Rainfall units differ between the crop and fertilizer datasets, so the shared Rainfall feature could not be used consistently.
+
+Next steps
+1. Re-run the 21-photo hard-negative probe on model D and record the leak rate next to C's 11 of 21.
+2. Test D on phone photos of real red soil to measure domain shift.
+3. Decide how gravel soil is handled (map to an existing class, add a class, or leave as a known gap).
+4. Add a "None of these" option on the app's confirm screen.
+5. Add per-prediction SHAP to the API if the team wants it.
+6. Add the rule-based layer (soil health score, deficiency flags, dosage), using soil-test rating thresholds from the mentor or ICAR tables.
+7. Have an agronomist review the soil-type mapping.
+

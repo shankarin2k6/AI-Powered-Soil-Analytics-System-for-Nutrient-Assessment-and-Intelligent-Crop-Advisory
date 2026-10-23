@@ -1,0 +1,8 @@
+uvicorn soil_api:app --reload
+
+CNN_FILE=soil_cnn_D_hard_negatives.pt uvicorn soil_api:app --reload
+
+for postgreSQL:
+
+sudo -u postgres psql
+CREATE ROLE shankari WITH LOGIN CREATEDB;
