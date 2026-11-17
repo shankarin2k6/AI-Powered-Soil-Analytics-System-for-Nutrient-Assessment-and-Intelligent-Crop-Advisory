@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { ApiError, Farmer, ProfileInput, api } from "@/lib/api";
 import { getLanguage } from "@/lib/i18n";
+import { clearOfflineData, rememberFarmer, rememberedFarmer } from "@/lib/pwa";
 
 /**
  * Who is signed in. The login itself is a cookie that the browser keeps (the page cannot read it),
@@ -32,14 +33,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setState({ status: "loading" });
     api
       .me()
-      .then((farmer) => setState({ status: "signedIn", farmer }))
-      .catch((e) => setState(e instanceof ApiError && e.status === 401 ? { status: "signedOut" } : { status: "error" }));
+      .then((farmer) => { rememberFarmer(farmer); setState({ status: "signedIn", farmer }); })
+      .catch((e) => {
+        if (e instanceof ApiError && e.status === 401) { setState({ status: "signedOut" }); return; }
+        // no connection: open the app for the farmer who was signed in on this phone (pages saved earlier still work)
+        const saved = rememberedFarmer<Farmer>();
+        setState(saved ? { status: "signedIn", farmer: saved } : { status: "error" });
+      });
   }, []);
 
   useEffect(check, [check]);
 
   useEffect(() => {
-    const expired = () => setState({ status: "signedOut" });
+    const expired = () => { clearOfflineData(); setState({ status: "signedOut" }); };
     window.addEventListener("auth:expired", expired);
     return () => window.removeEventListener("auth:expired", expired);
   }, []);
@@ -47,16 +53,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AuthContext>(
     () => ({
       state,
-      signup: async (name, phone, password) => setState({ status: "signedIn", farmer: await api.signup(name, phone, password, getLanguage()) }),
-      login: async (phone, password) => setState({ status: "signedIn", farmer: await api.login(phone, password) }),
+      signup: async (name, phone, password) => { await clearOfflineData(); const farmer = await api.signup(name, phone, password, getLanguage()); rememberFarmer(farmer); setState({ status: "signedIn", farmer }); },
+      login: async (phone, password) => { await clearOfflineData(); const farmer = await api.login(phone, password); rememberFarmer(farmer); setState({ status: "signedIn", farmer }); },
       logout: async () => {
         try {
           await api.logout();
         } finally {
+          await clearOfflineData();     // saved results belong to the farmer who just left
           setState({ status: "signedOut" });
         }
       },
-      updateProfile: async (body) => setState({ status: "signedIn", farmer: await api.updateProfile(body) }),
+      updateProfile: async (body) => { const farmer = await api.updateProfile(body); rememberFarmer(farmer); setState({ status: "signedIn", farmer }); },
       retry: check,
     }),
     [state, check],

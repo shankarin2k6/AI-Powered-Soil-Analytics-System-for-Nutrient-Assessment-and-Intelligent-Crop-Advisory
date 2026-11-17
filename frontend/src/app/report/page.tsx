@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AnalysisView from "@/components/AnalysisView";
+import FertilizerPlan from "@/components/FertilizerPlan";
 import Brand from "@/components/Brand";
 import Icon from "@/components/Icon";
 import { AnalysisRecord, ApiError, api } from "@/lib/api";
@@ -21,6 +22,7 @@ function Report() {
   const { state } = useAuth();
   const [record, setRecord] = useState<AnalysisRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [planReady, setPlanReady] = useState(false);       // printing waits until the fertiliser plan has loaded
 
   useEffect(() => {
     if (!id) { setError("analysis.nothing_to_analyze"); return; }
@@ -43,11 +45,12 @@ function Report() {
     <div className="report">
       <div className="report-actions no-print">
         <Link className="big-button ghost" href={id ? `/analysis?id=${id}` : "/history"}><Icon name="chevron" size={18} /> {t("report.back")}</Link>
-        <button className="big-button primary" onClick={() => window.print()} disabled={!record}>
+        <button className="big-button primary" onClick={() => window.print()} disabled={!record || (!!record.result.lab && !planReady)}>
           <Icon name="save" size={20} /> {t("report.download")}
         </button>
       </div>
       <p className="hint no-print">{t("report.hint")}</p>
+      {record?.result.lab && <p className="hint no-print">{t("report.plan_hint")}</p>}
 
       {error && <p className="error" role="alert">{t(error)}</p>}
       {!error && !record && <div className="skeleton" aria-busy="true" />}
@@ -65,6 +68,7 @@ function Report() {
             </dl>
           </header>
           <AnalysisView record={record} />
+          <FertilizerPlan record={record} onSettled={() => setPlanReady(true)} />
           <footer className="report-foot">{t("report.generated", { date: formatDate(record.created_at, false) })}</footer>
         </article>
       )}

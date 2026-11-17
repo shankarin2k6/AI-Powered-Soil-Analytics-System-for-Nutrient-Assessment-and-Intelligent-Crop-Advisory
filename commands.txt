@@ -6,3 +6,10 @@ for postgreSQL:
 
 sudo -u postgres psql
 CREATE ROLE shankari WITH LOGIN CREATEDB;
+
+backend:
+uvicorn app.main:app --reload 
+
+frontend:
+npm run build 
+npm start

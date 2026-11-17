@@ -2,7 +2,7 @@
 
 export type IconName =
   | "home" | "camera" | "flask" | "list" | "leaf" | "drop" | "sun" | "check" | "user" | "lock"
-  | "mail" | "pin" | "edit" | "chevron" | "close" | "moon" | "chart" | "phone" | "calendar" | "save" | "image" | "alert" | "logout" | "sprout" | "steady" | "frame" | "translate";
+  | "mail" | "pin" | "edit" | "chevron" | "close" | "moon" | "chart" | "phone" | "calendar" | "save" | "image" | "alert" | "logout" | "sprout" | "steady" | "frame" | "translate" | "speaker" | "stop";
 
 const PATHS: Record<IconName, string[]> = {
   home: ["M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"],
@@ -31,6 +31,8 @@ const PATHS: Record<IconName, string[]> = {
   sprout: ["M12 21v-9", "M12 12c0-4-3-6-7-6 0 4 3 6 7 6z", "M12 14c0-3 2-5 6-5 0 3-2 5-6 5z"],
   steady: ["M12 3v4", "M8 7h8", "M7 21h10", "M12 7v14", "M9 12l3-2 3 2"],
   translate: ["M3 5h10", "M8 3v2", "M5 5c.6 3.6 3 6.4 7 8.2", "M11.5 5c-.7 3.8-3.4 6.8-7.5 8.6", "M12.5 21l4-9.5 4 9.5", "M13.9 18h5.2"],
+  speaker: ["M4 9v6h4l5 4V5L8 9z", "M16.5 8.5a5 5 0 0 1 0 7", "M19 6a8.5 8.5 0 0 1 0 12"],
+  stop: ["M7 7h10v10H7z"],
   frame: ["M4 8V5a1 1 0 0 1 1-1h3", "M16 4h3a1 1 0 0 1 1 1v3", "M20 16v3a1 1 0 0 1-1 1h-3", "M8 20H5a1 1 0 0 1-1-1v-3"],
 };
 

@@ -7,7 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import analysis, auth, fields, history, images, soil_tests, trend
+from app.api import analysis, auth, fields, history, images, soil_tests, trend, voice, plan
 from app.config import settings
 from app.ingestion.validate import IngestError
 
@@ -20,7 +20,7 @@ app.add_middleware(CORSMiddleware, allow_origins=settings.cors_list, allow_crede
                    allow_methods=["*"], allow_headers=["*"])
 
 API_PREFIX = "/api/v1"
-for module in (auth, fields, images, soil_tests, history, analysis, trend):
+for module in (auth, fields, images, soil_tests, history, analysis, trend, voice, plan):
     app.include_router(module.router, prefix=API_PREFIX)
 
 

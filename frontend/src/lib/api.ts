@@ -110,6 +110,18 @@ export type CropMatch = {
 export type CropRanking =
   | { available: false; reason_key: string }
   | { available: true; soil_class: string | null; top: CropMatch[]; summary_key: string };
+export type PlanItem = { product: "urea" | "dap" | "mop" | "fym" | "lime" | "gypsum"; kg: number };
+export type PlanStep = {
+  id: string; day: number | null; title_key: string; title_params?: Record<string, number>;
+  timing_key: string; timing_params?: Record<string, number>; how_key: string; items: PlanItem[];
+  state: "past" | "now" | "later" | null;
+};
+export type FertilizerPlan =
+  | { available: false; reason_key: string }
+  | { available: true; crop: string; stage: string; unit: "acre";
+      nutrients: { n: number; p2o5: number; k2o: number };
+      adjustments: { nutrient: "nitrogen" | "phosphorus" | "potassium"; level: "low" | "medium" | "high" | "unknown"; factor: number }[];
+      steps: PlanStep[]; shopping: PlanItem[]; notes: string[] };
 export type Trend = {
   points: { analysis_id: number; date: string; health_score: number; degradation_index: number | null }[];
   enough_data: boolean; direction: "improving" | "steady" | "declining" | null;
@@ -172,6 +184,25 @@ export const api = {
     request<SoilTestRecord>(`/fields/${fieldId}/soil-tests`, json(body)),
   listImages: (fieldId: number) => request<ImageRecord[]>(`/fields/${fieldId}/images`),
   listSoilTests: (fieldId: number) => request<SoilTestRecord[]>(`/fields/${fieldId}/soil-tests`),
+  planCrops: () => request<{ crops: string[]; stages: string[] }>("/fertilizer-plan/crops"),
+  fertilizerPlan: (analysisId: number, crop: string, stage: string) =>
+    request<FertilizerPlan>(`/analyses/${analysisId}/fertilizer-plan?crop=${encodeURIComponent(crop)}&stage=${encodeURIComponent(stage)}`),
+  voiceStatus: () => request<{ enabled: boolean }>("/voice/status"),
+  /** Spoken version of a text (Sarvam AI through our server). Returns an audio Blob. */
+  speak: async (text: string, language: string): Promise<Blob> => {
+    let res: Response;
+    try {
+      res = await fetch(`${V1}/voice/speak`, { ...json({ text, language }), credentials: "include" });
+    } catch {
+      throw new ApiError(0, "Network error", "error.network");
+    }
+    if (!res.ok) {
+      let key: string | undefined;
+      try { key = (await res.json()).message_key; } catch { /* not JSON */ }
+      throw new ApiError(res.status, "Voice failed", key ?? "voice.error");
+    }
+    return res.blob();
+  },
   trend: (fieldId: number) => request<Trend>(`/fields/${fieldId}/trend`),
   history: (fieldId: number) => request<HistoryItem[]>(`/fields/${fieldId}/history`),
 

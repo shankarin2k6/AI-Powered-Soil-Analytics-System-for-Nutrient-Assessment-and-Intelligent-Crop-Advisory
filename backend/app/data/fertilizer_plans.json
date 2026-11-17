@@ -1,0 +1,524 @@
+{
+ "_note": "PROVISIONAL guide doses in kg of nutrient per hectare (N, P2O5, K2O), typical of state package-of-practices values. They differ by variety, state, season and irrigation. Confirm with your mentor / agriculture officer, then edit this file only; no code changes are needed. 'steps' split each nutrient (fractions add up to 1) across the days after sowing.",
+ "products": {
+  "urea": {
+   "n": 0.46
+  },
+  "dap": {
+   "n": 0.18,
+   "p": 0.46
+  },
+  "mop": {
+   "k": 0.6
+  }
+ },
+ "soil_test_factor": {
+  "low": 1.25,
+  "medium": 1.0,
+  "high": 0.75
+ },
+ "organic": {
+  "kg_per_acre_default": 2000,
+  "kg_per_acre_low_om": 4000
+ },
+ "lime_kg_per_acre": {
+  "acidic": 200,
+  "strongly_acidic": 400
+ },
+ "crops": {
+  "rice": {
+   "npk": [
+    120,
+    60,
+    60
+   ],
+   "group": "cereal",
+   "steps": [
+    {
+     "day": 0,
+     "n": 0.34,
+     "p": 1,
+     "k": 0.5
+    },
+    {
+     "day": 25,
+     "n": 0.33,
+     "p": 0,
+     "k": 0
+    },
+    {
+     "day": 50,
+     "n": 0.33,
+     "p": 0,
+     "k": 0.5
+    }
+   ],
+   "paddy": true
+  },
+  "wheat": {
+   "npk": [
+    120,
+    60,
+    40
+   ],
+   "group": "cereal",
+   "steps": [
+    {
+     "day": 0,
+     "n": 0.5,
+     "p": 1,
+     "k": 1
+    },
+    {
+     "day": 21,
+     "n": 0.25,
+     "p": 0,
+     "k": 0
+    },
+    {
+     "day": 45,
+     "n": 0.25,
+     "p": 0,
+     "k": 0
+    }
+   ]
+  },
+  "maize": {
+   "npk": [
+    120,
+    60,
+    40
+   ],
+   "group": "cereal",
+   "steps": [
+    {
+     "day": 0,
+     "n": 0.25,
+     "p": 1,
+     "k": 1
+    },
+    {
+     "day": 25,
+     "n": 0.5,
+     "p": 0,
+     "k": 0
+    },
+    {
+     "day": 50,
+     "n": 0.25,
+     "p": 0,
+     "k": 0
+    }
+   ]
+  },
+  "ragi": {
+   "npk": [
+    60,
+    30,
+    30
+   ],
+   "group": "millet",
+   "steps": [
+    {
+     "day": 0,
+     "n": 0.5,
+     "p": 1,
+     "k": 1
+    },
+    {
+     "day": 30,
+     "n": 0.5,
+     "p": 0,
+     "k": 0
+    }
+   ]
+  },
+  "jowar": {
+   "npk": [
+    80,
+    40,
+    40
+   ],
+   "group": "millet",
+   "steps": [
+    {
+     "day": 0,
+     "n": 0.5,
+     "p": 1,
+     "k": 1
+    },
+    {
+     "day": 30,
+     "n": 0.5,
+     "p": 0,
+     "k": 0
+    }
+   ]
+  },
+  "bajra": {
+   "npk": [
+    60,
+    30,
+    30
+   ],
+   "group": "millet",
+   "steps": [
+    {
+     "day": 0,
+     "n": 0.5,
+     "p": 1,
+     "k": 1
+    },
+    {
+     "day": 25,
+     "n": 0.5,
+     "p": 0,
+     "k": 0
+    }
+   ]
+  },
+  "groundnut": {
+   "npk": [
+    20,
+    40,
+    40
+   ],
+   "group": "legume",
+   "steps": [
+    {
+     "day": 0,
+     "n": 1,
+     "p": 1,
+     "k": 1
+    }
+   ],
+   "extras": [
+    {
+     "day": 40,
+     "product": "gypsum",
+     "kg_ha": 500
+    }
+   ]
+  },
+  "cotton": {
+   "npk": [
+    100,
+    50,
+    50
+   ],
+   "group": "fibre",
+   "steps": [
+    {
+     "day": 0,
+     "n": 0.25,
+     "p": 1,
+     "k": 0.5
+    },
+    {
+     "day": 30,
+     "n": 0.25,
+     "p": 0,
+     "k": 0
+    },
+    {
+     "day": 60,
+     "n": 0.25,
+     "p": 0,
+     "k": 0.5
+    },
+    {
+     "day": 90,
+     "n": 0.25,
+     "p": 0,
+     "k": 0
+    }
+   ]
+  },
+  "sugarcane": {
+   "npk": [
+    250,
+    100,
+    120
+   ],
+   "group": "cane",
+   "steps": [
+    {
+     "day": 0,
+     "n": 0.2,
+     "p": 1,
+     "k": 0.5
+    },
+    {
+     "day": 45,
+     "n": 0.4,
+     "p": 0,
+     "k": 0
+    },
+    {
+     "day": 90,
+     "n": 0.4,
+     "p": 0,
+     "k": 0.5
+    }
+   ]
+  },
+  "pigeonpea": {
+   "npk": [
+    25,
+    50,
+    25
+   ],
+   "group": "legume",
+   "steps": [
+    {
+     "day": 0,
+     "n": 1,
+     "p": 1,
+     "k": 1
+    }
+   ]
+  },
+  "chickpea": {
+   "npk": [
+    20,
+    40,
+    20
+   ],
+   "group": "legume",
+   "steps": [
+    {
+     "day": 0,
+     "n": 1,
+     "p": 1,
+     "k": 1
+    }
+   ]
+  },
+  "greengram": {
+   "npk": [
+    20,
+    40,
+    20
+   ],
+   "group": "legume",
+   "steps": [
+    {
+     "day": 0,
+     "n": 1,
+     "p": 1,
+     "k": 1
+    }
+   ]
+  },
+  "soybean": {
+   "npk": [
+    30,
+    60,
+    30
+   ],
+   "group": "legume",
+   "steps": [
+    {
+     "day": 0,
+     "n": 1,
+     "p": 1,
+     "k": 1
+    }
+   ]
+  },
+  "sunflower": {
+   "npk": [
+    60,
+    60,
+    40
+   ],
+   "group": "oilseed",
+   "steps": [
+    {
+     "day": 0,
+     "n": 0.5,
+     "p": 1,
+     "k": 1
+    },
+    {
+     "day": 30,
+     "n": 0.5,
+     "p": 0,
+     "k": 0
+    }
+   ]
+  },
+  "tomato": {
+   "npk": [
+    120,
+    80,
+    60
+   ],
+   "group": "vegetable",
+   "steps": [
+    {
+     "day": 0,
+     "n": 0.34,
+     "p": 1,
+     "k": 0.5
+    },
+    {
+     "day": 25,
+     "n": 0.33,
+     "p": 0,
+     "k": 0.25
+    },
+    {
+     "day": 50,
+     "n": 0.33,
+     "p": 0,
+     "k": 0.25
+    }
+   ]
+  },
+  "onion": {
+   "npk": [
+    100,
+    50,
+    50
+   ],
+   "group": "vegetable",
+   "steps": [
+    {
+     "day": 0,
+     "n": 0.5,
+     "p": 1,
+     "k": 1
+    },
+    {
+     "day": 30,
+     "n": 0.25,
+     "p": 0,
+     "k": 0
+    },
+    {
+     "day": 50,
+     "n": 0.25,
+     "p": 0,
+     "k": 0
+    }
+   ]
+  },
+  "potato": {
+   "npk": [
+    150,
+    100,
+    100
+   ],
+   "group": "vegetable",
+   "steps": [
+    {
+     "day": 0,
+     "n": 0.5,
+     "p": 1,
+     "k": 1
+    },
+    {
+     "day": 30,
+     "n": 0.5,
+     "p": 0,
+     "k": 0
+    }
+   ]
+  },
+  "banana": {
+   "npk": [
+    200,
+    60,
+    300
+   ],
+   "group": "fruit",
+   "steps": [
+    {
+     "day": 0,
+     "n": 0,
+     "p": 1,
+     "k": 0
+    },
+    {
+     "day": 60,
+     "n": 0.25,
+     "p": 0,
+     "k": 0.25
+    },
+    {
+     "day": 120,
+     "n": 0.25,
+     "p": 0,
+     "k": 0.25
+    },
+    {
+     "day": 180,
+     "n": 0.25,
+     "p": 0,
+     "k": 0.25
+    },
+    {
+     "day": 240,
+     "n": 0.25,
+     "p": 0,
+     "k": 0.25
+    }
+   ]
+  },
+  "coffee": {
+   "npk": [
+    120,
+    90,
+    120
+   ],
+   "group": "plantation",
+   "steps": [
+    {
+     "day": null,
+     "n": 0.5,
+     "p": 1,
+     "k": 0.5
+    },
+    {
+     "day": null,
+     "n": 0.5,
+     "p": 0,
+     "k": 0.5
+    }
+   ],
+   "perennial": true,
+   "interval_months": 6
+  },
+  "tea": {
+   "npk": [
+    120,
+    60,
+    120
+   ],
+   "group": "plantation",
+   "steps": [
+    {
+     "day": null,
+     "n": 0.34,
+     "p": 1,
+     "k": 0.34
+    },
+    {
+     "day": null,
+     "n": 0.33,
+     "p": 0,
+     "k": 0.33
+    },
+    {
+     "day": null,
+     "n": 0.33,
+     "p": 0,
+     "k": 0.33
+    }
+   ],
+   "perennial": true,
+   "interval_months": 4
+  }
+ }
+}

@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     model_dir: Path = Path("models")
     cnn_file: str = "soil_cnn_D_hard_negatives.pt"   # 8 classes: 7 soils + Not_Soil
 
+    # Voice (Milestone 3): Sarvam AI text-to-speech. Leave the key empty to switch the Listen button off.
+    # Get a key at https://dashboard.sarvam.ai (see MILESTONE3_VOICE.md).
+    sarvam_api_key: str = ""
+    sarvam_tts_url: str = "https://api.sarvam.ai/text-to-speech"
+    sarvam_model: str = "bulbul:v3"
+    sarvam_speaker: str = "shubh"
+    voice_max_chars: int = 2500          # Sarvam's limit per request for bulbul:v3
+
     # Image upload rules
     max_upload_bytes: int = 10 * 1024 * 1024   # 10 MB
     min_side_px: int = 64                      # shorter side must be at least this

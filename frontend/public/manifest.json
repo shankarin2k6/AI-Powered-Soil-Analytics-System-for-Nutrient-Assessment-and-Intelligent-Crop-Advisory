@@ -1,13 +1,23 @@
 {
+  "id": "/",
   "name": "Soil Analytics",
   "short_name": "Soil",
-  "description": "Photograph your soil and enter lab test values",
+  "description": "Photograph your soil, add lab values and get advice for your field",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f4f7f2",
-  "theme_color": "#2e7d32",
+  "theme_color": "#2b7a4b",
+  "categories": ["agriculture", "productivity"],
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Photograph soil", "short_name": "Photo", "url": "/capture", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Add lab values", "short_name": "Lab test", "url": "/soil-test", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "History", "short_name": "History", "url": "/history", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

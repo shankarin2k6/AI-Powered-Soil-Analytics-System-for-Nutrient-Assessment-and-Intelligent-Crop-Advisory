@@ -25,6 +25,8 @@ matplotlib>=3.8
 argon2-cffi==25.1.0
 PyJWT==2.15.1
 
+# voice (Sarvam API calls) and tests
+httpx==0.28.1
+
 # only for running the tests
 pytest==9.1.1
-httpx==0.28.1

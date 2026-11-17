@@ -5,8 +5,10 @@ import { useEffect, useRef } from "react";
 import AuthLayout from "@/components/AuthLayout";
 import Brand from "@/components/Brand";
 import Icon from "@/components/Icon";
+import InstallButton from "@/components/InstallButton";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import MainNav from "@/components/MainNav";
+import PwaBanners from "@/components/PwaBanners";
 import ProfileMenu from "@/components/ProfileMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import { AuthProvider, useAuth } from "@/lib/auth";
@@ -78,7 +80,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     );
   if ((state.status === "signedOut" && !isPublic) || (state.status === "signedIn" && isPublic)) return <Splash />; // redirecting
 
-  if (state.status === "signedOut") return <AuthLayout>{children}</AuthLayout>;
+  if (state.status === "signedOut") return <><PwaBanners clearTools /><AuthLayout>{children}</AuthLayout></>;
 
   return (
     <>
@@ -87,12 +89,14 @@ function Shell({ children }: { children: React.ReactNode }) {
           <Brand />
           <MainNav />
           <span className="header-user">
+            <InstallButton />
             <LanguageSwitcher />
             <ThemeToggle />
             <ProfileMenu farmer={state.farmer} onLogout={logout} />
           </span>
         </div>
       </header>
+      <PwaBanners />
       <main className="page">
         {/* keyed by path so every page change plays the short fade-in */}
         <div key={pathname} className="page-in">{children}</div>

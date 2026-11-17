@@ -542,6 +542,8 @@ html:lang(hi) .hero-title, html:lang(kn) .hero-title, html:lang(ta) .hero-title 
 .report { display: grid; gap: 14px; max-width: 860px; margin: 0 auto; }
 .report-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 .report-link { justify-self: start; }
+.listen { display: grid; gap: 8px; justify-items: start; }
+.listen .big-button { min-width: 11rem; }
 .report-sheet { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 24px; display: grid; gap: 18px; }
 .report-head { display: grid; gap: 10px; border-bottom: 2px solid var(--leaf); padding-bottom: 14px; }
 .report-head h1 { font-size: 1.7rem; }
@@ -571,4 +573,50 @@ html:lang(hi) .hero-title, html:lang(kn) .hero-title, html:lang(ta) .hero-title 
   .crop-list { gap: 10px; }
   a { color: inherit; text-decoration: none; }
   * { animation: none !important; transition: none !important; }
+}
+
+/* ---- installable app / offline banners ---- */
+.pwa-banner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0; padding: 10px 16px; font-size: .95rem; }
+.pwa-banner.offline { background: var(--warn-bg); color: var(--warn-ink); position: sticky; top: 0; z-index: 30; }
+.pwa-banner.install { background: var(--leaf-soft); color: var(--ink); border-bottom: 1px solid var(--line); }
+.pwa-banner > span { flex: 1 1 14rem; }
+.pwa-banner .big-button { min-height: 40px; padding: 8px 16px; }
+.pwa-banner .icon-button { background: none; border: 0; color: inherit; padding: 6px; border-radius: 8px; cursor: pointer; line-height: 0; }
+.install-wrap { position: relative; display: inline-flex; }
+.install-button { color: var(--leaf-deep); border-color: var(--leaf); }
+.install-hint { position: absolute; top: 52px; right: 0; width: 15rem; margin: 0; padding: 10px 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.18); font-size: .9rem; z-index: 50; }
+/* signed-out pages have fixed language/theme buttons at the top right: keep the banner text clear of them */
+.pwa-banner.clear-tools { padding-right: 140px; }
+@media (max-width: 600px) { .pwa-banner.clear-tools { padding-right: 16px; margin-top: 0; padding-top: 64px; } }
+@media print { .pwa-banner { display: none !important; } }
+
+/* ---- fertiliser plan ---- */
+.plan-controls { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 700px) { .plan-controls { grid-template-columns: 1fr 1.4fr 1.2fr; align-items: end; } }
+.plan-area-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 8px; }
+.plan-nutrients { font-weight: 600; margin: 0; }
+.plan-adjust { color: var(--muted); font-size: .92rem; display: grid; gap: 4px; }
+.plan-items { display: grid; gap: 4px; margin: 6px 0; }
+.plan-items li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; background: var(--leaf-soft); border-radius: 10px; }
+.plan-items strong { white-space: nowrap; }
+.plan-steps { display: grid; gap: 12px; counter-reset: step; }
+.plan-step { border: 1px solid var(--line); border-left: 5px solid var(--line-strong); border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px; }
+.plan-step.now { border-left-color: var(--leaf); background: var(--leaf-soft); }
+.plan-step.now .plan-items li { background: var(--paper); }
+.plan-step.past { opacity: .6; }
+.plan-step-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.plan-when { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.plan-how { margin: 4px 0 0; color: var(--muted); }
+.pill.plan-now { background: var(--leaf); color: #fff; }
+.pill.plan-past, .pill.plan-later { background: var(--chalk); color: var(--muted); border: 1px solid var(--line); }
+.plan-notes { display: grid; gap: 6px; padding-left: 1.1rem; list-style: disc; }
+.plan-print-line { display: none; margin: 0; font-weight: 600; }
+@media print {
+  .plan-controls { display: none !important; }
+  .plan-print-line { display: block; }
+  .plan-step, .plan-items li, .plan h3 { break-inside: avoid; }
+  .plan h2, .plan h3 { break-after: avoid; }
+  .plan-nutrients, .plan-adjust { break-inside: avoid; }
+  .plan-step.now, .plan-items li { background: #eef5ec !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .plan .skeleton { display: none; }
 }

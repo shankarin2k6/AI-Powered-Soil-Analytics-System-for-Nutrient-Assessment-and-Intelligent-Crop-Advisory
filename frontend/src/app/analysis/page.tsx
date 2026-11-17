@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import ListenButton from "@/components/ListenButton";
+import FertilizerPlan from "@/components/FertilizerPlan";
 import AnalysisView from "@/components/AnalysisView";
 import Icon from "@/components/Icon";
 import PageHead from "@/components/PageHead";
@@ -120,12 +122,14 @@ function AnalysisScreen() {
           </div>
         )}
         {loading && <div className="skeleton" aria-busy="true" />}
+        {record && <ListenButton record={record} />}
         {record && (
           <Link className="big-button ghost report-link" href={`/report?id=${record.id}`}>
             <Icon name="save" size={20} /> {t("report.open")}
           </Link>
         )}
         {record && <AnalysisView record={record} onConfirmSoil={run} busy={busy} />}
+        {record && <FertilizerPlan record={record} />}
       </div>
     </>
   );

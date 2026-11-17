@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   title: "Soil Analytics",
   description: "Photograph your soil, save lab test values and keep your field records in one place.",
   manifest: "/manifest.json",
+  icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Soil Analytics", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
