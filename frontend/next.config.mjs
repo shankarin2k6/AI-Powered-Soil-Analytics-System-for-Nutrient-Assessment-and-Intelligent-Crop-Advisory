@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // The Docker image builds a small self-contained server (see frontend/Dockerfile). Normal `npm run build` is unchanged.
+  ...(process.env.NEXT_STANDALONE ? { output: "standalone" } : {}),
   // The service worker file must never be kept by the browser's HTTP cache, or phones keep running an old one.
   async headers() {
     return [
