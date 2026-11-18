@@ -9,7 +9,9 @@ COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend/ .
 ENV NEXT_PUBLIC_API_URL="" NEXT_STANDALONE=1 NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+# set again on the command itself, and stop with a clear message (plus the config) if the standalone folder is not made
+RUN NEXT_PUBLIC_API_URL="" NEXT_STANDALONE=1 npm run build \
+ && (test -f .next/standalone/server.js || (echo "=== STANDALONE OUTPUT MISSING ===" && ls -la .next && cat next.config.mjs && exit 1))
 
 # ---- 2. the runtime image ----
 FROM python:3.12-slim
