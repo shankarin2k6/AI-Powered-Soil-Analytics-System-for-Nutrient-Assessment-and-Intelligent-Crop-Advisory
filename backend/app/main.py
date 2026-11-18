@@ -3,12 +3,15 @@
 To add a feature (for example the recommendation endpoints in Milestone 3): write a router in app/api/ and add one
 include_router line below.
 """
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app.api import analysis, auth, fields, history, images, soil_tests, trend, voice, plan
 from app.config import settings
+from app.db import get_db
 from app.ingestion.validate import IngestError
 
 settings.check_production_ready()
@@ -33,3 +36,13 @@ def ingest_error_handler(_request: Request, exc: IngestError):
 @app.get("/health", tags=["health"])
 def health():
     return {"status": "ok"}
+
+
+@app.get(f"{API_PREFIX}/health", tags=["health"])
+def health_with_database(db: Session = Depends(get_db)):
+    """Used by Docker and uptime checks: the server is up and can reach the database."""
+    try:
+        db.execute(text("select 1"))
+    except Exception:
+        return JSONResponse(status_code=503, content={"status": "error", "database": "down"})
+    return {"status": "ok", "database": "ok"}

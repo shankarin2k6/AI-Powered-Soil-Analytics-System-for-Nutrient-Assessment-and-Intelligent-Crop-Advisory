@@ -11,7 +11,7 @@ import { t, useLang } from "@/lib/i18n";
  * To add or change a lab value, edit this list (and the backend schema SoilTestCreate).
  * The limits must match the backend; the backend is the final check.
  */
-type FieldDef = {
+export type FieldDef = {
   name: keyof SoilTestInput;
   chip?: string;
   icon?: IconName;
@@ -20,7 +20,7 @@ type FieldDef = {
   max: number;
   required: boolean;
 };
-const FIELDS: FieldDef[] = [
+export const FIELDS: FieldDef[] = [
   { name: "nitrogen", chip: "N", unit: "mg/kg", min: 0, max: 500, required: true },
   { name: "phosphorus", chip: "P", unit: "mg/kg", min: 0, max: 500, required: true },
   { name: "potassium", chip: "K", unit: "mg/kg", min: 0, max: 500, required: true },

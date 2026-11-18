@@ -183,6 +183,8 @@ export const api = {
   createSoilTest: (fieldId: number, body: SoilTestInput) =>
     request<SoilTestRecord>(`/fields/${fieldId}/soil-tests`, json(body)),
   listImages: (fieldId: number) => request<ImageRecord[]>(`/fields/${fieldId}/images`),
+  updateSoilTest: (id: number, body: Omit<SoilTestInput, "image_id">) =>
+    request<SoilTestRecord>(`/soil-tests/${id}`, json(body, "PUT")),
   listSoilTests: (fieldId: number) => request<SoilTestRecord[]>(`/fields/${fieldId}/soil-tests`),
   planCrops: () => request<{ crops: string[]; stages: string[] }>("/fertilizer-plan/crops"),
   fertilizerPlan: (analysisId: number, crop: string, stage: string) =>

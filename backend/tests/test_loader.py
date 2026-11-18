@@ -50,3 +50,30 @@ def test_gradcam_responds_to_the_image():
     probs, cam = _forward_with_cam(net, img)
     assert cam.shape == (224, 224) and 0 <= cam.min() and cam.max() <= 1 and cam.std() > 0.01
     assert abs(probs.sum() - 1) < 1e-4
+
+
+def test_onnx_model_matches_pytorch(tmp_path):
+    """The server-side ONNX model (no PyTorch) must give the same probabilities and Grad-CAM as the checkpoint."""
+    pytest.importorskip("onnxruntime")
+    import numpy as np
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    from app.ml import image as im
+
+    cnn = make_cnn({"Red": 2.0})
+    with torch.no_grad():   # a non-trivial last layer, so the heat-map is not flat
+        torch.manual_seed(1)
+        torch.nn.init.normal_(cnn.classifier[1].weight, std=0.05)
+    torch.save({"classes": CLASSES, "state_dict": cnn.state_dict()}, tmp_path / "cnn.pt")
+    script = Path(__file__).resolve().parents[1] / "scripts" / "export_onnx.py"
+    subprocess.run([sys.executable, str(script), str(tmp_path / "cnn.pt"), str(tmp_path)], check=True, capture_output=True)
+    reg = load_registry(tmp_path, "cnn.pt")
+    assert type(reg.cnn).__name__ == "OnnxCnn" and reg.classes == CLASSES
+    img = Image.fromarray(np.random.default_rng(3).integers(0, 255, (180, 260, 3), dtype="uint8"))
+    p_onnx, cam_onnx = reg.cnn.forward(img)
+    p_torch, cam_torch = im._torch_forward_with_cam(cnn, img)
+    assert abs(p_onnx - p_torch).max() < 1e-3 and abs(cam_onnx - cam_torch).max() < 1e-2
+    res, png = classify_soil(img, reg)
+    assert res["available"] and (png is None or png[:4] == b"\x89PNG")

@@ -6,11 +6,7 @@ import io
 from typing import Optional
 
 import numpy as np
-import torch
-import torch.nn.functional as F
-from matplotlib import colormaps
 from PIL import Image
-from torchvision import transforms
 
 from app.ml.loader import ModelRegistry, canon_class
 
@@ -19,16 +15,15 @@ SOIL_CONFIRM = 0.40     # between CONFIRM and CONFIDENT: top-2 candidates, the f
 # Optionally reject as "not soil" when P(Not_Soil) alone reaches this value (None = argmax rule only).
 NOT_SOIL_REJECT: Optional[float] = None
 
-MEAN, STD = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
-EVAL_TF = transforms.Compose([
-    transforms.Resize(256), transforms.CenterCrop(224),
-    transforms.ToTensor(), transforms.Normalize(MEAN, STD),
-])
+def _torch_forward_with_cam(cnn, img: Image.Image):
+    """PyTorch path (used when only the .pt file is present, and in the tests)."""
+    import torch
+    import torch.nn.functional as F
+    from torchvision import transforms
 
-
-def _forward_with_cam(cnn, img: Image.Image):
-    """Forward pass + Grad-CAM for the predicted class. Returns (probabilities, heat-map 224x224 in 0..1)."""
-    x = EVAL_TF(img).unsqueeze(0)
+    MEAN, STD = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+    x = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224),
+                            transforms.ToTensor(), transforms.Normalize(MEAN, STD)])(img).unsqueeze(0)
     with torch.enable_grad():
         a = cnn.features(x)                                    # last conv feature map (1, C, 7, 7)
         out = cnn.classifier(torch.flatten(cnn.avgpool(a), 1))
@@ -43,9 +38,25 @@ def _forward_with_cam(cnn, img: Image.Image):
     return probs.detach().numpy(), cam
 
 
+def _forward_with_cam(cnn, img: Image.Image):
+    """Forward pass + Grad-CAM for the predicted class. Returns (probabilities, heat-map 224x224 in 0..1)."""
+    if hasattr(cnn, "forward") and not hasattr(cnn, "features"):        # the ONNX model (no PyTorch needed)
+        return cnn.forward(img)
+    return _torch_forward_with_cam(cnn, img)
+
+
+def _jet(v: np.ndarray) -> np.ndarray:
+    """The classic 'jet' colour scale (same control points as matplotlib), so matplotlib is not needed on the server."""
+    r = np.interp(v, [0, 0.35, 0.66, 0.89, 1], [0, 0, 1, 1, 0.5])
+    g = np.interp(v, [0, 0.125, 0.375, 0.64, 0.91, 1], [0, 0, 1, 1, 0, 0])
+    b = np.interp(v, [0, 0.11, 0.34, 0.65, 1], [0.5, 1, 1, 0, 0])
+    return np.stack([r, g, b], axis=-1)
+
+
 def _overlay_png(img: Image.Image, cam: np.ndarray) -> bytes:
-    base = transforms.CenterCrop(224)(transforms.Resize(256)(img))
-    heat = (colormaps["jet"](cam)[..., :3] * 255).astype(np.uint8)
+    from app.ml.onnx_cnn import preprocess_pil
+    base = preprocess_pil(img)
+    heat = (_jet(cam) * 255).astype(np.uint8)
     mix = (0.55 * np.asarray(base) + 0.45 * heat).astype(np.uint8)
     buf = io.BytesIO()
     Image.fromarray(mix).save(buf, "PNG")

@@ -156,6 +156,24 @@ class SoilTestCreate(BaseModel):
         return v
 
 
+class SoilTestUpdate(BaseModel):
+    """Replaces the values of a saved lab test. The linked photo stays as it is."""
+    nitrogen: float = Field(ge=0, le=500, description="mg/kg")
+    phosphorus: float = Field(ge=0, le=500, description="mg/kg")
+    potassium: float = Field(ge=0, le=500, description="mg/kg")
+    ph: float = Field(ge=0, le=14)
+    organic_matter: Optional[float] = Field(None, ge=0, le=100, description="percent")
+    moisture: Optional[float] = Field(None, ge=0, le=100, description="percent")
+    tested_on: Optional[date] = None
+
+    @field_validator("tested_on")
+    @classmethod
+    def not_in_future(cls, v: Optional[date]) -> Optional[date]:
+        if v is not None and v > date.today():
+            raise ValueError("tested_on cannot be in the future")
+        return v
+
+
 class SoilTestOut(ORM):
     id: int
     field_id: int

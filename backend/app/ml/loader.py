@@ -4,7 +4,8 @@ Each model is loaded on its own. A missing file does not stop the server: the an
 part and says so in its result (message key `analysis.models_unavailable`), so the lab-only analysis keeps
 working while you are still developing.
 
-    models/<cnn_file>           8-class EfficientNet-B0 checkpoint {"classes", "state_dict"}
+    models/soil_cnn.onnx + soil_cnn_head.npz   the image model for servers (no PyTorch needed; see scripts/export_onnx.py)
+    models/<cnn_file>           or the 8-class EfficientNet-B0 checkpoint {"classes", "state_dict"} (needs PyTorch)
     models/fert_model.joblib    {"model", "label_encoder", "columns"}
     models/inference_config.json  fertilizer defaults + training ranges
 """
@@ -50,7 +51,18 @@ def load_registry(model_dir: Path, cnn_file: str) -> ModelRegistry:
     model_dir = Path(model_dir)
 
     cnn_path = model_dir / cnn_file
-    if cnn_path.exists():
+    onnx_path, head_path = model_dir / "soil_cnn.onnx", model_dir / "soil_cnn_head.npz"
+    if onnx_path.exists() and head_path.exists():
+        try:
+            from app.ml.onnx_cnn import OnnxCnn
+
+            reg.cnn = OnnxCnn(onnx_path, head_path)
+            reg.classes = list(reg.cnn.classes)
+            reg.not_soil_idx = reg.classes.index(NOT_SOIL_LABEL) if NOT_SOIL_LABEL in reg.classes else None
+        except Exception as exc:
+            log.exception("could not load the ONNX CNN")
+            reg.errors["image"] = f"{type(exc).__name__}: {exc}"
+    elif cnn_path.exists():
         try:
             import torch
             import torch.nn as nn

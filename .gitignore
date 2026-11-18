@@ -8,13 +8,18 @@ node_modules/
 backend/uploads/*
 !backend/uploads/.gitkeep
 backend/models/*
-backend/.env
 !backend/models/.gitkeep
+!backend/models/README.md
+# the small server-side models may be committed so a host can build the image from Git (not the 16 MB .pt)
+!backend/models/soil_cnn.onnx
+!backend/models/soil_cnn_head.npz
+!backend/models/fert_model.joblib
+!backend/models/inference_config.json
 ml/data/
 
-.env.local
-.env.*.local
-next-env.d.ts
-tsconfig.tsbuildinfo
-MILESTONE3.md
-*.zip
+.env.prod
+backups/
+
+*.whl
+.DS_Store
+frontend/.env.local

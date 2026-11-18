@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import owned_field, owned_soil_test
 from app.db import get_db
 from app.models_db import FarmField, SoilImage, SoilTest
-from app.schemas import SoilTestCreate, SoilTestOut
+from app.schemas import SoilTestCreate, SoilTestOut, SoilTestUpdate
 
 router = APIRouter(tags=["soil tests"])
 
@@ -31,4 +31,12 @@ def list_soil_tests(field: FarmField = Depends(owned_field), db: Session = Depen
 
 @router.get("/soil-tests/{test_id}", response_model=SoilTestOut)
 def get_soil_test(test: SoilTest = Depends(owned_soil_test)):
+    return test
+
+
+@router.put("/soil-tests/{test_id}", response_model=SoilTestOut)
+def update_soil_test(body: SoilTestUpdate, test: SoilTest = Depends(owned_soil_test), db: Session = Depends(get_db)):
+    for name, value in body.model_dump().items():
+        setattr(test, name, value)
+    db.commit()
     return test

@@ -68,10 +68,6 @@ export default function Home() {
         </aside>
       </div>
 
-      <p className="next-note">
-        <Icon name="leaf" />
-        <span><strong>{t("home.next.title")}</strong> {t("home.next.text")}</span>
-      </p>
     </>
   );
 }

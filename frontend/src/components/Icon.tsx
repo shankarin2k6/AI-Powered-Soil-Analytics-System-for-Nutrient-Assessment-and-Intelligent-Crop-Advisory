@@ -2,12 +2,16 @@
 
 export type IconName =
   | "home" | "camera" | "flask" | "list" | "leaf" | "drop" | "sun" | "check" | "user" | "lock"
-  | "mail" | "pin" | "edit" | "chevron" | "close" | "moon" | "chart" | "phone" | "calendar" | "save" | "image" | "alert" | "logout" | "sprout" | "steady" | "frame" | "translate" | "speaker" | "stop";
+  | "mail" | "pin" | "edit" | "chevron" | "close" | "moon" | "chart" | "phone" | "calendar" | "save" | "image" | "alert" | "logout" | "sprout" | "steady" | "frame" | "translate" | "speaker" | "stop" | "grid" | "rows" | "arrowup" | "info";
 
 const PATHS: Record<IconName, string[]> = {
   home: ["M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"],
   camera: ["M4 7h3l2-3h6l2 3h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z", "M12 9a4 4 0 1 0 0.01 0z"],
   flask: ["M9 3h6", "M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2.2h12.4a1.5 1.5 0 0 0 1.3-2.2L14 9V3", "M7.5 15h9"],
+  info: ["M12 3a9 9 0 1 0 0.01 0z", "M12 11v6", "M12 7.5h.01"],
+  arrowup: ["M12 19V5", "M5 12l7-7 7 7"],
+  grid: ["M4 4h7v9H4z", "M13 4h7v5h-7z", "M4 15h7v5H4z", "M13 11h7v9h-7z"],
+  rows: ["M4 5h16", "M4 12h16", "M4 19h16"],
   list: ["M6 4h12a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z", "M9 4V3h6v1", "M9 11h6", "M9 15h6"],
   leaf: ["M5 19c0-8 5-14 15-14 0 9-5 15-13 15", "M5 19l8-8"],
   drop: ["M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"],

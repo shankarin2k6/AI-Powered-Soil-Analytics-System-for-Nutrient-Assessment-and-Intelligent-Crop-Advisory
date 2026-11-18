@@ -120,7 +120,10 @@ export default function AnalysisView({ record, onConfirmSoil, busy, compact }: {
           )}
           {!r.health && <small>{t("analysis.no_lab")}</small>}
         </div>
-        <Link className="big-button ghost" href={`/analysis?id=${record.id}`}>{t("analysis.view")}</Link>
+        <Link className="big-button ghost view-link" href={`/analysis?id=${record.id}`} aria-label={t("analysis.view")}>
+          <span className="view-label">{t("analysis.view")}</span>
+          <span className="view-arrow" aria-hidden="true"><Icon name="chevron" size={20} /></span>
+        </Link>
       </div>
     );
   }

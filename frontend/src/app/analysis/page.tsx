@@ -9,7 +9,7 @@ import AnalysisView from "@/components/AnalysisView";
 import Icon from "@/components/Icon";
 import PageHead from "@/components/PageHead";
 import PhotoPicker from "@/components/PhotoPicker";
-import { AnalysisRecord, AnalyzeInput, ApiError, ImageRecord, ModelStatus, api } from "@/lib/api";
+import { AnalysisRecord, AnalyzeInput, ApiError, ImageRecord, ModelStatus, SoilTestRecord, api } from "@/lib/api";
 import { ensureField } from "@/lib/session";
 import { t, useLang } from "@/lib/i18n";
 
@@ -32,7 +32,8 @@ function AnalysisScreen() {
   const [options, setOptions] = useState<ModelStatus["fertilizer_options"]>({});
   const [crop, setCrop] = useState<Record<string, string>>({});
   const [images, setImages] = useState<ImageRecord[] | null>(null);     // newest first
-  const [withLab, setWithLab] = useState<Set<number>>(new Set());       // photos that have lab values saved with them
+  const [fieldId, setFieldId] = useState<number | null>(null);
+  const [labByImage, setLabByImage] = useState<Map<number, SoilTestRecord>>(new Map());   // newest lab test saved with each photo
   const [selected, setSelected] = useState<number | null>(null);
 
   const fail = (e: unknown) => {
@@ -47,10 +48,12 @@ function AnalysisScreen() {
       return;
     }
     ensureField()
-      .then((fieldId) => Promise.all([api.listImages(fieldId), api.listSoilTests(fieldId)]))
+      .then((id) => { setFieldId(id); return Promise.all([api.listImages(id), api.listSoilTests(id)]); })
       .then(([imgs, tests]) => {
         setImages(imgs);
-        setWithLab(new Set(tests.flatMap((x) => (x.image_id != null ? [x.image_id] : []))));
+        const map = new Map<number, SoilTestRecord>();
+        for (const x of [...tests].sort((a, b) => b.id - a.id)) if (x.image_id != null && !map.has(x.image_id)) map.set(x.image_id, x);
+        setLabByImage(map);
         setSelected(imgs[0]?.id ?? null);                    // the newest photo is pre-selected
       })
       .catch(() => setImages([]));
@@ -61,6 +64,12 @@ function AnalysisScreen() {
     setSelected(id);
     setRecord(null);                                         // the old result belongs to another photo
     setError(null);
+  }
+
+  function labSaved(saved: SoilTestRecord) {
+    if (saved.image_id == null) return;
+    setLabByImage((m) => new Map(m).set(saved.image_id as number, saved));
+    if (saved.image_id === selected) { setRecord(null); setError(null); }   // an old result no longer matches these values
   }
 
   async function run(confirmed?: string) {
@@ -84,12 +93,16 @@ function AnalysisScreen() {
     <>
       <PageHead title={t("analysis.title")} lead={t("analysis.lead")} />
       <div className="stack">
-        {!savedId && images && <PhotoPicker images={images} selected={selected} withLab={withLab} onSelect={choose} />}
+        {!savedId && images && <PhotoPicker images={images} selected={selected} fieldId={fieldId} labByImage={labByImage} onSelect={choose} onLabSaved={labSaved} />}
         {!savedId && (
           <div className="panel stack">
             {hasOptions && (
               <details className="crop-details">
-                <summary>{t("analysis.crop.title")}</summary>
+                <summary>
+                  <span className="crop-summary-icon"><Icon name="leaf" size={22} /></span>
+                  <span className="crop-summary-text">{t("analysis.crop.title")}</span>
+                  <span className="crop-summary-chevron" aria-hidden="true"><Icon name="chevron" size={22} /></span>
+                </summary>
                 <p className="hint">{t("analysis.crop.hint")}</p>
                 <div className="form-grid">
                   {CROP_FIELDS.map((f) => (

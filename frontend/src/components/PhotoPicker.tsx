@@ -1,20 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import LabValuesDialog from "@/components/LabValuesDialog";
 import Icon from "@/components/Icon";
-import { ImageRecord, mediaUrl } from "@/lib/api";
+import { ImageRecord, SoilTestRecord, mediaUrl } from "@/lib/api";
 import { formatDate, t, useLang } from "@/lib/i18n";
 
 /**
  * Row of small photos, newest first, so the farmer can see (and change) which photo will be analysed.
- * `withLab` holds the ids of photos that have lab values saved with them.
+ * `labByImage` holds the newest lab test saved with each photo; tapping the lab line opens it in a pop-up.
  */
 const when = (iso: string) => formatDate(iso);
 
-export default function PhotoPicker({ images, selected, withLab, onSelect }: {
-  images: ImageRecord[]; selected: number | null; withLab: Set<number>; onSelect: (id: number) => void;
+export default function PhotoPicker({ images, selected, fieldId, labByImage, onSelect, onLabSaved }: {
+  images: ImageRecord[]; selected: number | null; fieldId: number | null; labByImage: Map<number, SoilTestRecord>;
+  onSelect: (id: number) => void; onLabSaved: (saved: SoilTestRecord) => void;
 }) {
   useLang();
+  const [open, setOpen] = useState<number | null>(null);          // photo whose lab values are shown in the pop-up
+  const openImage = images.find((i) => i.id === open);
   const current = images.find((i) => i.id === selected);
   return (
     <section className="panel picker stack">
@@ -41,9 +46,13 @@ export default function PhotoPicker({ images, selected, withLab, onSelect }: {
                     {i === 0 && <span className="thumb-new">{t("analysis.choose.latest")}</span>}
                   </span>
                   <span className="thumb-when">{when(img.created_at)}</span>
-                  <span className={`thumb-lab${withLab.has(img.id) ? " yes" : ""}`}>
-                    <Icon name="flask" size={14} /> {t(withLab.has(img.id) ? "analysis.choose.with_lab" : "analysis.choose.no_lab")}
-                  </span>
+                </button>
+                <button
+                  type="button" className={`thumb-lab${labByImage.has(img.id) ? " yes" : ""}`}
+                  onClick={() => setOpen(img.id)} aria-label={t("lab.view_aria", { date: when(img.created_at) })}
+                >
+                  <Icon name="flask" size={14} /> {t(labByImage.has(img.id) ? "analysis.choose.with_lab" : "analysis.choose.no_lab")}
+                  <Icon name="edit" size={13} />
                 </button>
               </li>
             );
@@ -51,11 +60,17 @@ export default function PhotoPicker({ images, selected, withLab, onSelect }: {
         </ul>
       )}
 
-      {current && !withLab.has(current.id) && (
+      {current && !labByImage.has(current.id) && (
         <p className="notice">
           <Icon name="alert" size={18} />
           <span>{t("analysis.choose.no_lab_note")} <Link href={`/soil-test?image=${current.id}`}>{t("analysis.add_test")}</Link></span>
         </p>
+      )}
+      {openImage && fieldId != null && (
+        <LabValuesDialog
+          fieldId={fieldId} imageId={openImage.id} imageDate={openImage.created_at} test={labByImage.get(openImage.id) ?? null}
+          onClose={() => setOpen(null)} onSaved={(saved) => { onLabSaved(saved); setOpen(null); }}
+        />
       )}
     </section>
   );

@@ -105,3 +105,22 @@ def test_cors_allows_frontend_origin_with_cookies(client):
     assert r.headers.get("access-control-allow-origin") == "http://localhost:3000"
     assert r.headers.get("access-control-allow-credentials") == "true"
     assert client.get("/health").json() == {"status": "ok"}
+
+
+def test_soil_test_can_be_edited(client, field_id):
+    img = client.post(f"/api/v1/fields/{field_id}/images", files={"file": ("a.png", make_soil_image(), "image/png")}).json()
+    made = client.post(f"/api/v1/fields/{field_id}/soil-tests", json={**TEST, "moisture": 20, "image_id": img["id"]}).json()
+    r = client.put(f"/api/v1/soil-tests/{made['id']}", json={**TEST, "nitrogen": 95, "organic_matter": 2.1})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["nitrogen"] == 95 and body["organic_matter"] == 2.1
+    assert body["moisture"] is None                    # a value left out is cleared
+    assert body["image_id"] == img["id"]               # the photo link is kept
+    assert client.get(f"/api/v1/soil-tests/{made['id']}").json()["nitrogen"] == 95
+
+
+def test_editing_a_soil_test_checks_values_and_owner(client, field_id):
+    made = client.post(f"/api/v1/fields/{field_id}/soil-tests", json=TEST).json()
+    assert client.put(f"/api/v1/soil-tests/{made['id']}", json={**TEST, "ph": 15}).status_code == 422
+    assert client.put(f"/api/v1/soil-tests/{made['id']}", json={"ph": 6}).status_code == 422
+    assert client.put("/api/v1/soil-tests/9999", json=TEST).status_code == 404

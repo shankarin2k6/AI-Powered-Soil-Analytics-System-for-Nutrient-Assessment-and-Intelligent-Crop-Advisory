@@ -1,61 +1,336 @@
-# Milestone 2: ML analysis engine (weeks 3 and 4)
+<div align="center">
 
-| Requirement in the plan | Where it is |
-| --- | --- |
-| CNN (EfficientNet) for soil type | `backend/app/ml/image.py` (trained in the Kaggle notebook; 8 classes incl. `Not_Soil`) |
-| Gradient-boosted model on structured soil data | `backend/app/ml/tabular.py` (XGBoost fertilizer model) + rule ratings in `backend/app/services/soil_health.py` |
-| Fusion of image and structured predictions | `backend/app/api/analysis.py` steps 3 and 5 (decision-level fusion, see below) |
-| Grad-CAM | `app/ml/image.py`, saved as a PNG per analysis, shown on `/analysis` |
-| SHAP | `app/ml/tabular.py` (`_explain`, TreeSHAP per prediction), shown as "Why this suggestion?" |
-| FastAPI: health score, deficiency diagnosis, degradation risk | `POST /api/v1/fields/{id}/analyze` |
+<img src="docs/assets/m3-hero.svg" alt="Soil Analytics, Milestone 3: advisory, voice, offline PWA and deployment" width="100%"/>
 
-## Run it
+# 🌱 AI-Powered Soil Analytics System
+### Nutrient assessment and intelligent crop advisory for farmers
+*Infosys Springboard Internship 7.0 · Team C*
 
-```bash
-cd backend
-python -m pip install -r requirements.txt     # adds torch, torchvision, xgboost, scikit-learn, pandas, matplotlib
-# copy the files from your notebooks into backend/models/ :
-#   soil_cnn_D_hard_negatives.pt   fert_model.joblib   inference_config.json
-uvicorn app.main:app --reload
-# check they loaded:  http://localhost:8000/api/v1/analysis/status
+> **A farmer uploads a soil photo and enters lab values. The app finds the soil type, scores soil health, ranks crops, gives a step-by-step fertiliser plan, and speaks the result in the farmer's own language, even with weak internet.**
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
+![XGBoost](https://img.shields.io/badge/XGBoost-16a34a?style=for-the-badge)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-Offline%20ready-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)
+![Tests](https://img.shields.io/badge/Backend%20tests-209%20passing-22c55e?style=for-the-badge)
+
+<img src="docs/assets/divider.svg" alt="" width="100%"/>
+
+**[✨ Features](#-features) · [🗺️ How it works](#️-how-it-works) · [🧭 Milestones](#-milestones) · [🚀 Quick start](#-quick-start) · [🔌 API](#-api) · [☁️ Deployment](#️-deployment) · [⚠️ Limits](#️-known-limitations)**
+
+</div>
+
+## ✨ Features
+
+| | Feature | What the farmer gets |
+| :-: | --- | --- |
+| 📷 | **Soil photo analysis** | Soil type from EfficientNet-B0, with a Grad-CAM heat map showing what the model looked at |
+| 🧪 | **Health score** | Low / medium / high ratings for N, P, K, pH and organic matter, plus a 0 to 100 score |
+| 🌾 | **Crop ranking** | Crops scored for this soil: 40% pH fit, 35% nutrient fit, 25% soil type |
+| 📈 | **Health trend** | Improving, steady or declining, with a 90-day estimate (needs 3 or more tests over 14 days) |
+| 🧑‍🌾 | **Fertiliser plan** | Step-by-step doses (DAP, urea, MOP, manure, lime) by growth stage, scaled to the field size |
+| 📄 | **PDF report** | One-click printable report, including the plan, in all four languages |
+| 🔊 | **Listen** | The result read aloud with Sarvam AI voices |
+| 📲 | **Installable PWA** | Install from the browser, open saved records offline |
+| 🌐 | **4 languages** | English, हिन्दी, ಕನ್ನಡ, தமிழ் on every page |
+| 🚀 | **Production ready** | Docker, automatic HTTPS, S3 or Google Cloud photo storage, nightly backup |
+
+<img src="docs/assets/divider.svg" alt="" width="100%"/>
+
+## 🗺️ How it works
+
+<div align="center">
+<img src="docs/assets/m3-flow.svg" alt="Animated Milestone 3 system flow" width="100%"/>
+</div>
+
+### 🔬 From soil to advice
+
+```mermaid
+flowchart LR
+    A([📷 Soil photo]) --> B[EfficientNet-B0]
+    B --> C{Confident?}
+    C -- yes --> D[Soil type + Grad-CAM]
+    C -- no --> E[Ask farmer to confirm or retake]
+    F([🧪 Lab values]) --> G[Rating tables]
+    G --> H[Health score + ratings]
+    D --> I[[Decision-level fusion]]
+    E --> I
+    H --> I
+    I --> J[XGBoost fertiliser suggestion]
+    I --> K[🌾 Crop ranking]
+    I --> L[📈 Health trend]
+    K --> M[🧑‍🌾 Fertiliser plan]
+    M --> N[📄 PDF report]
+    M --> O[🔊 Listen]
+    style A fill:#fef3c7,stroke:#d97706
+    style F fill:#fef3c7,stroke:#d97706
+    style M fill:#dcfce7,stroke:#16a34a
+    style N fill:#dbeafe,stroke:#2563eb
+    style O fill:#dbeafe,stroke:#2563eb
 ```
 
-No database migration is needed (the `analyses` table already existed). If a model file is missing the server still
-starts: that part of the analysis is skipped and the response says so (`analysis.models_unavailable`).
-`pytest` runs 121 tests using small stand-in models, so it needs no real model files.
+<details>
+<summary><b>🧑‍🌾 How the fertiliser plan is worked out</b> (click to open)</summary>
 
-## API
+```mermaid
+flowchart TD
+    A[Chosen crop] --> B[Base dose in kg per hectare]
+    S[Soil test: N, P, K level] --> C{Level?}
+    C -- low --> D[x 1.25]
+    C -- medium --> E[x 1.00]
+    C -- high --> F[x 0.75]
+    B --> G[Adjusted N, P, K]
+    D --> G
+    E --> G
+    F --> G
+    G --> H[DAP gives P and some N]
+    H --> I[MOP gives K]
+    I --> J[Urea gives the remaining N]
+    J --> K[Add FYM, lime or gypsum if soil needs it]
+    K --> L[Split into stages: before sowing, early, middle, late]
+    L --> M[Scale per acre to field size]
+```
 
-| Method and path | Purpose |
+- **Manure:** 2,000 kg per acre, or 4,000 kg when organic matter is low.
+- **Lime:** 200 kg per acre for acidic soil, 400 kg for strongly acidic soil. **Gypsum** 500 kg per hectare for groundnut.
+- Each step is marked **done, now or later**. Coffee and tea use rounds instead of stages.
+
+</details>
+
+<details>
+<summary><b>🔊 How Listen works</b> (click to open)</summary>
+
+```mermaid
+sequenceDiagram
+    participant F as Farmer
+    participant W as Web app
+    participant B as FastAPI
+    participant S as Storage
+    participant V as Sarvam AI
+    F->>W: Press Listen
+    W->>B: POST /voice/speak (text, language)
+    B->>S: Is this text already saved?
+    alt saved
+        S-->>B: MP3
+    else new
+        B->>V: Text to speech (bulbul:v3)
+        V-->>B: MP3
+        B->>S: Save by hash
+    end
+    B-->>W: MP3
+    W-->>F: Plays the result aloud
+```
+
+The Sarvam key stays on the server. Text is limited to 2,500 characters and 12 requests per minute per farmer.
+
+</details>
+
+<details>
+<summary><b>📲 How offline use works</b> (click to open)</summary>
+
+```mermaid
+flowchart LR
+    A[Farmer opens a record online] --> B[Service worker saves it]
+    B --> C[(Offline cache)]
+    D[Network goes off] --> E{Record saved?}
+    E -- yes --> F[Opens from cache ✅]
+    E -- no --> G[Rebuilt from saved history and list]
+    G --> F
+    H[Logout or session expiry] --> I[Cache cleared 🧹]
+```
+
+Saving new tests, login and Listen still need internet; the app shows an offline banner. The service worker only runs in a production build (`npm run build && npm start`).
+
+</details>
+
+<details>
+<summary><b>🖼️ Full architecture diagram</b> (click to open)</summary>
+
+<img src="docs/assets/Milestone3_System_Architecture.jpg" alt="Milestone 3 architecture" width="100%"/>
+
+</details>
+
+<img src="docs/assets/divider.svg" alt="" width="100%"/>
+
+## 🧭 Milestones
+
+```mermaid
+timeline
+    title Project journey
+    Milestone 1 : Ingestion pipeline
+                : Login, photo upload, lab forms
+                : PostgreSQL storage
+    Milestone 2 : ML analysis engine
+                : EfficientNet-B0 and Grad-CAM
+                : XGBoost fertiliser model
+                : Health score and ratings
+    Milestone 3 : Crop ranking, trend, fertiliser plan
+                : PDF report and Sarvam voice
+                : Offline PWA, 4 languages
+                : Docker deployment with HTTPS
+```
+
+| Milestone | Notes |
 | --- | --- |
-| `POST /fields/{id}/analyze` | body (all optional): `image_id`, `soil_test_id`, `confirmed_soil_class`, `crop_type`, `growth_stage`, `season`. Empty body = newest photo + newest lab test. Saves a row in `analyses`. |
-| `GET /fields/{id}/analyses`, `GET /analyses/{id}` | saved results |
-| `GET /analyses/{id}/gradcam` | heat-map PNG |
-| `GET /analysis/status` | which models are loaded; the crop / stage / season values the fertilizer model accepts |
+| 1. Ingestion | Signup and login, photo upload and camera capture, image checks, OpenCV preprocessing, lab forms, PostgreSQL |
+| 2. ML analysis | [MILESTONE2.md](MILESTONE2.md) |
+| 3. Advisory and product | [MILESTONE3.md](MILESTONE3.md) · [Fertiliser plan](MILESTONE3_PLAN.md) · [Voice](MILESTONE3_VOICE.md) · [PWA and offline](MILESTONE3_PWA.md) · [Deployment](DEPLOYMENT.md) |
 
-Result JSON: `image` (tier, soil_class, candidates, top3), `lab.ratings`, `health` (score 0-100, grade),
-`degradation` (index 0-100, level, drivers), `diagnosis` (deficiencies, pH issue), `fertilizer_signal`
-(top-3 + SHAP features), `fusion`, `warnings`. All text is returned as message keys that resolve in `messages/en.json`.
+## 🧰 Tech stack
 
-## How the pieces combine
+| Layer | Tools |
+| --- | --- |
+| **Backend** | FastAPI, SQLAlchemy 2, Alembic, PostgreSQL 16, argon2 + JWT cookie login |
+| **ML** | PyTorch (EfficientNet-B0), XGBoost, OpenCV, Grad-CAM, SHAP |
+| **Frontend** | Next.js 16 (app router), React 19, TypeScript, service worker PWA |
+| **Voice** | Sarvam AI text to speech (`bulbul:v3`) |
+| **Deployment** | Docker Compose, Caddy (automatic HTTPS), local disk / Amazon S3 / Google Cloud Storage |
 
-1. **Photo** -> CNN on the `normalized` image -> tier: `confident` (>= 0.60), `confirm` (0.40-0.60, farmer picks one of two),
-   `retake`, `not_soil`. Grad-CAM is produced for every tier except `not_soil`.
-2. **Lab values** -> rating tables (`app/data/ratings.json`) -> low / medium / high per nutrient, pH class, health score
-   (weighted mean of per-parameter scores) and degradation index (pH stress, organic matter, NPK depletion, soil-type susceptibility).
-3. **Fusion** (decision level): the photo's soil class is used only when confident or confirmed by the farmer; when the CNN is
-   unsure, the lab pH is used to suggest which candidate fits (`lab_hint`); a lab pH far outside the usual range of the chosen
-   soil raises `fusion.ph_soil_mismatch`; the soil class feeds the fertilizer model (via `soil_to_fertilizer_type`) and the
-   degradation index; the fertilizer model's top-3 must cover a low nutrient for the diagnosis to show "also suggested by the model".
-4. **Fertilizer model** runs only when crop, growth stage and season are given.
+## 📁 Project structure
 
-A single neural network over image + lab features is not possible here, because no dataset has photos and lab results of
-the same samples. Say this in the report as a design decision, not a gap.
+```text
+soil-analytics/
+├── backend/      FastAPI app, ML services, Alembic migrations, tests
+├── frontend/     Next.js PWA
+├── ml/           Notebooks and evaluation reports
+├── deploy/       Caddyfile and backup script
+├── docs/assets/  Images and animations used in the docs
+├── docker-compose.yml        PostgreSQL for development
+└── docker-compose.prod.yml   Full production stack
+```
 
-## Things to confirm before the final report
+<img src="docs/assets/divider.svg" alt="" width="100%"/>
 
-- **Rating thresholds** (`ratings.json`) are provisional ICAR-style cut-offs. Ask your mentor which ones the project should use; edit the file only.
-- **Weights, grades and soil susceptibility values** in the same file are my starting values, not research results.
-- `soil_to_fertilizer_type` (Black -> Clay, etc.) is unreviewed. Gravel soil still has no CNN class.
-- The fertilizer dataset looks synthetic and SSP is unreliable (F1 about 0.15); the app labels it as a hint.
-- Everything was tested with stand-in models. Run it once with your real files and a real phone photo.
+## 🚀 Quick start
+
+> You need **Python 3.11+**, **Node.js 20+** and **Docker** (for PostgreSQL).
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 1️⃣ Backend
+
+```bash
+docker compose up -d
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+cp .env.example .env
+alembic upgrade head
+uvicorn app.main:app --reload
+```
+
+API at <http://localhost:8000>
+
+</td>
+<td width="50%" valign="top">
+
+### 2️⃣ Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+App at <http://localhost:3000>
+
+**Install and offline test:**
+
+```bash
+npm run build
+npm start
+```
+
+</td>
+</tr>
+</table>
+
+> 📦 **Model files are not in Git** (they are large). Put `soil_cnn_D_hard_negatives.pt`, `fert_model.joblib` and `inference_config.json` in `backend/models/`, then check <http://localhost:8000/api/v1/analysis/status>.
+>
+> 🔊 To enable Listen, set `SARVAM_API_KEY` in `backend/.env`.
+
+**Tests**
+
+```bash
+cd backend && pytest                 # backend tests
+cd frontend && npx tsc --noEmit      # type check
+```
+
+<details>
+<summary><b>⚙️ Configuration</b> (click to open)</summary>
+
+Copy `backend/.env.example` to `backend/.env`. **Never commit `.env` files.**
+
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL connection |
+| `SECRET_KEY` | Signs login cookies (at least 32 characters in production) |
+| `COOKIE_SECURE` | `true` when served over HTTPS |
+| `STORAGE_BACKEND` | `local`, `s3` or `gcs` |
+| `SARVAM_API_KEY` | Text to speech (optional) |
+
+</details>
+
+## 🔌 API
+
+All routes are under `/api/v1`. Login sets a signed `soil_session` cookie.
+
+<details>
+<summary><b>Show all endpoints</b> (click to open)</summary>
+
+| Path | Method | Purpose |
+| --- | :-: | --- |
+| `/auth/signup`, `/auth/login`, `/auth/logout` | POST | Account and session |
+| `/auth/me`, `/auth/me/language` | GET, PATCH, PUT | Profile and language |
+| `/fields` | GET, POST | The farmer's fields |
+| `/fields/{id}/soil-tests` | GET, POST | Lab values |
+| `/fields/{id}/images` | GET, POST | Soil photos |
+| `/fields/{id}/analyze` | POST | Run the models and save the analysis |
+| `/analyses/{id}` | GET | One analysis |
+| `/analyses/{id}/gradcam` | GET | Grad-CAM heat map |
+| `/fields/{id}/history` | GET | Past analyses |
+| `/fields/{id}/trend` | GET | Health trend and 90-day estimate |
+| `/fertilizer-plan/crops` | GET | Crops available for a plan |
+| `/analyses/{id}/fertilizer-plan` | GET | Step-by-step plan |
+| `/voice/status`, `/voice/speak` | GET, POST | Speech |
+| `/analysis/status`, `/health` | GET | Model and service health |
+
+</details>
+
+## ☁️ Deployment
+
+```bash
+cp .env.prod.example .env.prod       # fill in the values
+docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+```
+
+Four services start: database, backend, frontend and **Caddy**, which gets an HTTPS certificate automatically and sends `/api/*` to the backend. Start-up checks refuse weak settings (short `SECRET_KEY`, insecure cookies, missing bucket). **Free hosting step by step:** [DEPLOY_FREE.md](DEPLOY_FREE.md). Full details (HTTPS, cloud storage, backups): [DEPLOYMENT.md](DEPLOYMENT.md).
+
+<img src="docs/assets/divider.svg" alt="" width="100%"/>
+
+## ⚠️ Known limitations
+
+- 🧑‍🔬 Rating thresholds, crop ranges and fertiliser doses are **provisional** and need confirmation by an agriculture expert.
+- 🗣️ Hindi, Kannada and Tamil text needs native-speaker review.
+- 🧮 The fertiliser plan is rule-based and separate from the XGBoost suggestion.
+- 🐳 Docker images, HTTPS and real cloud storage are not yet tested on a live server; install on a real phone is pending.
+
+## 👥 Team
+
+**Team C**, Infosys Springboard Internship 7.0 (Batch 4).
+
+<div align="center">
+
+<img src="docs/assets/divider.svg" alt="" width="100%"/>
+
+*Made with 💚 for farmers*
+
+</div>

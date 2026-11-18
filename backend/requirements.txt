@@ -11,22 +11,20 @@ pillow==12.3.0
 opencv-python-headless==5.0.0.93
 numpy>=1.26,<3
 
-# Milestone 2: models (CPU build of torch is enough; on Linux add:
-#   --extra-index-url https://download.pytorch.org/whl/cpu   to avoid the 2 GB GPU download)
-torch>=2.2
-torchvision>=0.17
+# Milestone 2 models. The server runs the image model with ONNX Runtime (small, no PyTorch); see scripts/export_onnx.py.
+onnxruntime>=1.18
 xgboost>=2.0
 scikit-learn>=1.4
 joblib>=1.3
 pandas>=2.0
-matplotlib>=3.8
 
 # login
 argon2-cffi==25.1.0
 PyJWT==2.15.1
 
-# voice (Sarvam API calls) and tests
+# voice (Sarvam API calls)
 httpx==0.28.1
 
-# only for running the tests
-pytest==9.1.1
+# cloud file storage (only used when STORAGE_BACKEND is s3 or gcs)
+boto3>=1.34
+google-cloud-storage>=2.16

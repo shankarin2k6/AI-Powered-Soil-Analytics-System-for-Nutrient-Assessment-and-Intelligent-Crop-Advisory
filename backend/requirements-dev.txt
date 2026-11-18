@@ -1,0 +1,10 @@
+# For development and tests:  pip install -r requirements-dev.txt
+# (PyTorch is only needed here: to run the tests, retrain, or convert the model with scripts/export_onnx.py.
+#  On Linux add  --extra-index-url https://download.pytorch.org/whl/cpu  to avoid the 2 GB GPU download.)
+-r requirements.txt
+torch>=2.2
+torchvision>=0.17
+onnx>=1.16
+matplotlib>=3.8
+pytest==9.1.1
+moto[s3]>=5.0

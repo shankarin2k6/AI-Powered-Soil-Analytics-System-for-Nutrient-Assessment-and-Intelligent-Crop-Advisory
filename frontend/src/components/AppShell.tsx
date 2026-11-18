@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import AuthLayout from "@/components/AuthLayout";
+import AboutLink from "@/components/AboutLink";
 import Brand from "@/components/Brand";
 import Icon from "@/components/Icon";
 import InstallButton from "@/components/InstallButton";
@@ -92,6 +93,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             <InstallButton />
             <LanguageSwitcher />
             <ThemeToggle />
+            <AboutLink />
             <ProfileMenu farmer={state.farmer} onLogout={logout} />
           </span>
         </div>

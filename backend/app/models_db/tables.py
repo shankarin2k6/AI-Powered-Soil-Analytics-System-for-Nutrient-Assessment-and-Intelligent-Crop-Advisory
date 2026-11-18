@@ -8,7 +8,7 @@ Image files are not stored in the database, only their storage keys (see service
 """
 from datetime import date, datetime, timezone
 
-from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, Integer, LargeBinary, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -98,3 +98,11 @@ class Analysis(Base):
     result: Mapped[dict] = mapped_column(JSON, default=dict)   # the full API response of the models
     model_version: Mapped[str | None] = mapped_column(String(60), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class StoredFile(Base):
+    """A file kept inside the database (STORAGE_BACKEND=db). For hosts whose disk is wiped on every restart."""
+    __tablename__ = "stored_files"
+
+    key: Mapped[str] = mapped_column(String(300), primary_key=True)
+    data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
