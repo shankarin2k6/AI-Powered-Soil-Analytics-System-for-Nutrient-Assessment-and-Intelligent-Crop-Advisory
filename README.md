@@ -6,6 +6,10 @@
 ### Nutrient assessment and intelligent crop advisory for farmers
 *Infosys Springboard Internship 7.0 · Team C*
 
+<a href="https://ai-powered-soil-analytics-system-for.onrender.com"><img src="https://img.shields.io/badge/%F0%9F%9A%80%20Live%20demo-Open%20the%20app-16a34a?style=for-the-badge" alt="Open the live app"/></a>
+
+> 💤 **First visit after a quiet period:** the free server sleeps when nobody is using it, so the page can take about a minute to wake up. After that it is fast.
+
 > **A farmer uploads a soil photo and enters lab values. The app finds the soil type, scores soil health, ranks crops, gives a step-by-step fertiliser plan, and speaks the result in the farmer's own language, even with weak internet.**
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
@@ -15,15 +19,29 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
 ![XGBoost](https://img.shields.io/badge/XGBoost-16a34a?style=for-the-badge)
+![ONNX](https://img.shields.io/badge/ONNX%20Runtime-005CED?style=for-the-badge&logo=onnx&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Render](https://img.shields.io/badge/Render-Free%20hosting-46E3B7?style=for-the-badge&logo=render&logoColor=black)
+![Neon](https://img.shields.io/badge/Neon-Serverless%20Postgres-00E599?style=for-the-badge&logo=neon&logoColor=black)
 ![PWA](https://img.shields.io/badge/PWA-Offline%20ready-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)
-![Tests](https://img.shields.io/badge/Backend%20tests-209%20passing-22c55e?style=for-the-badge)
+![Tests](https://img.shields.io/badge/Backend%20tests-213%20passing-22c55e?style=for-the-badge)
 
 <img src="docs/assets/divider.svg" alt="" width="100%"/>
 
-**[✨ Features](#-features) · [🗺️ How it works](#️-how-it-works) · [🧭 Milestones](#-milestones) · [🚀 Quick start](#-quick-start) · [🔌 API](#-api) · [☁️ Deployment](#️-deployment) · [⚠️ Limits](#️-known-limitations)**
+**[🚀 Live demo](#-live-demo) · [✨ Features](#-features) · [🗺️ How it works](#️-how-it-works) · [🧭 Milestones](#-milestones) · [🚀 Quick start](#-quick-start) · [🔌 API](#-api) · [☁️ Deployment](#️-deployment) · [⚠️ Limits](#️-known-limitations)**
 
 </div>
+
+## 🚀 Live demo
+
+| | |
+| --- | --- |
+| 🌐 **App** | **<https://ai-powered-soil-analytics-system-for.onrender.com>** |
+| 📱 **On a phone** | Open the link in Chrome (Android) or Safari (iPhone) and install it: Chrome menu > *Install app*, or Safari Share > *Add to Home Screen* |
+| 🔑 **Try it** | Sign up with any name, a phone number and a password, add a field, upload a soil photo and open the analysis |
+| 🌍 **Languages** | Switch between English, हिन्दी, ಕನ್ನಡ and தமிழ் from the top bar |
+
+> Hosted on free tiers (Render for the app, Neon for the database), so please use test data only.
 
 ## ✨ Features
 
@@ -38,7 +56,7 @@
 | 🔊 | **Listen** | The result read aloud with Sarvam AI voices |
 | 📲 | **Installable PWA** | Install from the browser, open saved records offline |
 | 🌐 | **4 languages** | English, हिन्दी, ಕನ್ನಡ, தமிழ் on every page |
-| 🚀 | **Production ready** | Docker, automatic HTTPS, S3 or Google Cloud photo storage, nightly backup |
+| 🚀 | **Production ready** | Docker, HTTPS, light ONNX model for small servers, photos in S3, Google Cloud or the database, backup script |
 
 <img src="docs/assets/divider.svg" alt="" width="100%"/>
 
@@ -186,10 +204,10 @@ timeline
 | Layer | Tools |
 | --- | --- |
 | **Backend** | FastAPI, SQLAlchemy 2, Alembic, PostgreSQL 16, argon2 + JWT cookie login |
-| **ML** | PyTorch (EfficientNet-B0), XGBoost, OpenCV, Grad-CAM, SHAP |
+| **ML** | EfficientNet-B0 trained in PyTorch and served with **ONNX Runtime**, XGBoost, OpenCV, Grad-CAM, SHAP |
 | **Frontend** | Next.js 16 (app router), React 19, TypeScript, service worker PWA |
 | **Voice** | Sarvam AI text to speech (`bulbul:v3`) |
-| **Deployment** | Docker Compose, Caddy (automatic HTTPS), local disk / Amazon S3 / Google Cloud Storage |
+| **Deployment** | Docker, Caddy, **Render** (free web service) + **Neon** (free PostgreSQL); or Docker Compose on any server; photos in the database / local disk / Amazon S3 / Google Cloud Storage |
 
 ## 📁 Project structure
 
@@ -307,12 +325,35 @@ All routes are under `/api/v1`. Login sets a signed `soil_session` cookie.
 
 ## ☁️ Deployment
 
+The live app runs for free with **no card**: one Docker container on **Render** (API, web app and a small Caddy front door) and a **Neon** PostgreSQL database.
+
+```mermaid
+flowchart LR
+    U["📱 Phone or browser"] -->|HTTPS| R
+    subgraph R["Render free web service (one Docker container, 512 MB)"]
+        C["Caddy<br/>:10000"] -->|"/api/*"| A["FastAPI + ONNX Runtime"]
+        C -->|"everything else"| W["Next.js app"]
+    end
+    A -->|"records and photos"| N[("Neon PostgreSQL")]
+```
+
+| Part | Choice | Why |
+| --- | --- | --- |
+| Image model | **ONNX Runtime** instead of PyTorch | The API needs about 300 MB instead of over 1 GB, so it fits a 512 MB free server. Predictions match the PyTorch model (probabilities within 0.00004). Convert once with `backend/scripts/export_onnx.py` |
+| Photos | `STORAGE_BACKEND=db` | The free server's disk is wiped on restart, so photos are kept in PostgreSQL |
+| Database | Neon free tier | No card, pauses when idle and wakes on the next request |
+| Front door | Caddy inside the container | Routes `/api/*` to the API and the rest to the web app, so login cookies stay on one address |
+
+**Deploy your own copy:** [DEPLOY_RENDER.md](DEPLOY_RENDER.md) (Render + Neon, no card). Other options: [DEPLOY_FREE.md](DEPLOY_FREE.md) (free servers and a laptop demo) and [DEPLOYMENT.md](DEPLOYMENT.md) (full details: HTTPS, S3 or Google Cloud storage, backups).
+
+On your own server with Docker Compose:
+
 ```bash
 cp .env.prod.example .env.prod       # fill in the values
 docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 ```
 
-Four services start: database, backend, frontend and **Caddy**, which gets an HTTPS certificate automatically and sends `/api/*` to the backend. Start-up checks refuse weak settings (short `SECRET_KEY`, insecure cookies, missing bucket). **Free hosting step by step:** [DEPLOY_FREE.md](DEPLOY_FREE.md). Full details (HTTPS, cloud storage, backups): [DEPLOYMENT.md](DEPLOYMENT.md).
+Four services start: database, backend, frontend and **Caddy**, which gets an HTTPS certificate automatically. Start-up checks refuse weak settings (short `SECRET_KEY`, insecure cookies, missing bucket).
 
 <img src="docs/assets/divider.svg" alt="" width="100%"/>
 
@@ -321,7 +362,10 @@ Four services start: database, backend, frontend and **Caddy**, which gets an HT
 - 🧑‍🔬 Rating thresholds, crop ranges and fertiliser doses are **provisional** and need confirmation by an agriculture expert.
 - 🗣️ Hindi, Kannada and Tamil text needs native-speaker review.
 - 🧮 The fertiliser plan is rule-based and separate from the XGBoost suggestion.
-- 🐳 Docker images, HTTPS and real cloud storage are not yet tested on a live server; install on a real phone is pending.
+- 💤 The free server sleeps after about 15 minutes without visitors, and the free CPU is small, so the first load and a photo analysis can take from several seconds to about a minute.
+- 💾 Photos are stored in the free database (about 1 GB in total), so this setup suits demos, not many users.
+- 🔊 Voice (Sarvam) is paid, so the Listen button stays hidden unless an API key is set.
+- ☁️ Free tiers can change their terms. The Docker setup in this repository can be moved to any server.
 
 ## 👥 Team
 
